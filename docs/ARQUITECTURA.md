@@ -35,7 +35,7 @@ solo se activan con texto cuando su id aparece en `LICENSED_OUTLETS`. Una fuente
 se entrega siempre como `rights: "sin_licencia"` y Ágora la excluye del análisis automático.
 Ninguna de las dos listas autoriza a eludir `robots.txt`, paywalls, CAPTCHAs o bloqueos técnicos.
 Cada ejecución produce además
-un informe por medio (`collected`, `blocked_license`, `missing_feed` o `failed`) para que una
+un informe por medio (`collected`, `metadata_only`, `blocked_license`, `missing_feed` o `failed`) para que una
 ampliación nunca falle de forma silenciosa. Las capturas de portada guardan el orden de los
 enlaces; `screenshot_url` queda vacío mientras no se configure almacenamiento de imágenes.
 
