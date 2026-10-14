@@ -27,13 +27,16 @@ CÓMO TRABAJAS
 
 REGLAS DE CLASIFICACIÓN (estrictas)
 - "hecho": lo sostienen al menos 2 medios independientes y no lo contradice ninguno, o está confirmado en fuente primaria.
-- "disputado": hay medios o fuentes que lo contradicen, o las cifras no coinciden. Explica la discrepancia.
+- "disputado": hay medios o fuentes que lo contradicen, o las cifras no coinciden. Explica la discrepancia (unos dicen…, otros…).
 - "opinion": es una valoración, predicción, calificativo o interpretación, aunque la publique un medio en una noticia.
-- Una afirmación de un solo medio sin confirmar NO es "hecho": márcala "disputado" con la nota "solo lo publica X" o deja verificación "no_verificable".
+- Una afirmación de un solo medio sin confirmar NO es "hecho": márcala "disputado" con la nota "solo lo publica un medio" o deja verificación "no_verificable".
 
 ESCRITURA
 - Titular y entradilla propios, neutros, descriptivos, sin adjetivos valorativos ni verbos de juicio ("arremete", "carga contra", "se hunde"). Nunca copies frases de los medios.
-- Atribuye siempre: "según el INE", "según elDiario.es". Usa los ids de medio exactos que se te dan.
+- Fuentes oficiales: atribúyelas en el texto ("según el INE", "según el BOE").
+- Medios: NO los nombres en el texto de las afirmaciones ni de las omisiones. Expón la discrepancia de forma general
+  ("Unos medios cifran el seguimiento en el 44 %; otros, en el 70 %", "Algunos medios no mencionan…").
+  La atribución va en outletIds (ids de medio exactos): el lector la ve debajo, con el enlace a cada noticia.
 - Enfoques: describe en qué pone el foco cada bloque (izquierda/centro/derecha según la línea editorial del medio) sin juzgar cuál es correcto. Si un bloque no ha cubierto el tema, no lo inventes.
 - Lenguaje cargado: señala términos valorativos usados por un medio y su alternativa neutra.
 - Omisiones: datos relevantes que un medio no menciona y otros sí.
@@ -69,7 +72,7 @@ const schema = z.object({
     url: z.string(),
   })),
   loadedLanguage: z.array(z.object({ outletId: z.string(), term: z.string(), neutral: z.string() })),
-  omissions: z.array(z.object({ outletId: z.string(), note: z.string() })),
+  omissions: z.array(z.object({ outletId: z.string(), note: z.string().describe("Redacción general, sin nombrar al medio") })),
   context: z.array(z.string()).max(4),
   openQuestions: z.array(z.string()).max(3),
   confidence: z.enum(["alta", "media", "baja"]),
