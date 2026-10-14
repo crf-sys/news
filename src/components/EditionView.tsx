@@ -59,7 +59,7 @@ export async function EditionView({ region, mode }: { region: string; mode: "por
         <div className="rounded-3xl bg-accent p-8 text-bg sm:p-14">
           <p className="label">Cada día a las 07:00</p>
           <h2 className="display mt-4 text-5xl sm:text-8xl">Las 10 de hoy,<br /><span className="italic">en tu correo.</span></h2>
-          <Link href="/newsletter" className="label mt-8 inline-block rounded-full bg-bg px-6 py-4 text-fg">Suscribirme gratis →</Link>
+          <Link href="/newsletter" className="label mt-8 inline-block rounded-full bg-bg px-6 py-4 text-fg">Regístrate gratis →</Link>
         </div>
       </section>
     </main>

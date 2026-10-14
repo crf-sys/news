@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Inter_Tight, JetBrains_Mono } from "next/font/google";
+import { Suspense } from "react";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Header } from "@/components/Header";
 import { CookieConsent } from "@/components/CookieConsent";
+import { RegisterBar } from "@/components/RegisterBar";
 import "./globals.css";
 
 const serif = Instrument_Serif({ variable: "--font-serif", subsets: ["latin"], weight: "400", style: ["normal", "italic"] });
@@ -35,6 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <a href="/cookies" className="hover:text-fg">Cookies</a>
           </nav>
         </footer>
+        <Suspense><RegisterBar /></Suspense>
         <CookieConsent />
         </ClerkProvider>
       </body>

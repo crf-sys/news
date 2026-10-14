@@ -22,7 +22,7 @@ export function Header() {
             </Link>
           ))}
           <Link href="/newsletter" className="label rounded-full bg-accent px-4 py-2 font-semibold text-bg">
-            07:00 ✉
+            Regístrate
           </Link>
         </nav>
       </div>

@@ -6,7 +6,7 @@ export default function Privacidad() {
     <LegalPage kicker={`Actualizada el ${TITULAR.updated}`} title="Privacidad">
       <p>Cumplimos el Reglamento General de Protección de Datos (RGPD, UE 2016/679) y la Ley Orgánica 3/2018 (LOPDGDD). Pedimos los mínimos datos posibles y nunca los vendemos.</p>
       <h2>Responsable</h2>
-      <p>{TITULAR.name} · NIF {TITULAR.nif} · {TITULAR.address} · <a className="underline" href={`mailto:${TITULAR.email}`}>{TITULAR.email}</a></p>
+      <p>{TITULAR.name} · EIN {TITULAR.nif} · {TITULAR.address} · <a className="underline" href={`mailto:${TITULAR.email}`}>{TITULAR.email}</a></p>
       <h2>Qué datos tratamos y para qué</h2>
       <table>
         <thead><tr><th>Dato</th><th>Finalidad</th><th>Base legal</th><th>Conservación</th></tr></thead>

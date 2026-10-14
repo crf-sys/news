@@ -159,3 +159,17 @@ create table if not exists front_page_snapshot_items (
   url text not null, title text, primary key (snapshot_id, position)
 );
 alter table articles add column if not exists provider text;
+
+-- Registro de lectores (newsletter "Las 10 de hoy"): doble confirmación y baja con un clic.
+alter table subscribers add column if not exists consent_at timestamptz;
+alter table subscribers add column if not exists consent_text text;
+alter table subscribers add column if not exists region text not null default 'es';
+alter table subscribers add column if not exists confirm_token text;
+alter table subscribers add column if not exists unsubscribe_token text;
+alter table subscribers add column if not exists last_sent_on date;
+create unique index if not exists subscribers_confirm_idx on subscribers (confirm_token);
+create unique index if not exists subscribers_unsub_idx on subscribers (unsubscribe_token);
+create table if not exists newsletter_sends (
+  day date not null, region text not null, sent int not null, failed int not null,
+  at timestamptz not null default now(), primary key (day, region)
+);
