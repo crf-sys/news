@@ -62,3 +62,13 @@ público válido. El Debate queda fuera porque devuelve HTTP 403 al bot identifi
 sortear esa restricción.
 
 Consecuencia para el "Especial Radios": de las grandes, solo RNE puede analizarse automáticamente hoy. SER, Onda Cero, COPE, RAC1 y Catalunya Ràdio requieren licencia o lectura humana desde el panel de edición.
+
+## Ampliación 14/10/2026 (noche) — medios añadidos por la API
+
+| Medio | Reserva minería / IA | robots.txt IA | Modo | Línea (provisional) |
+|---|---|---|---|---|
+| Libertad Digital | No detectada (aviso legal no localizado desde la home) | Sin bloqueos | Automático | Derecha |
+| OKDiario | No detectada | Sin bloqueos | Automático | Derecha |
+| The Objective | No detectada | Sin bloqueos | Automático | Centro-derecha |
+| Nueva Tribuna | No detectada | Sin bloqueos | Automático | Centro-izquierda |
+| La Marea | No detectada | Bloquea GPTBot, CCBot, Google-Extended | Requiere activación | Izquierda |
