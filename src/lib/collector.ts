@@ -65,12 +65,12 @@ function itemFromArticle(article: Article): RawItem {
   return {
     outlet: article.outletId,
     url: article.url,
-    title: article.title,
+    title: article.title.slice(0, 400),
     published_at: article.publishedAt,
     rights: rightsFor(outlet),
     subtitle: article.excerpt || undefined,
-    author: article.author,
-    section: article.section,
+    author: article.author?.slice(0, 200),
+    section: article.section?.slice(0, 80),
     kind: article.kind,
   };
 }
