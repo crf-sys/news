@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 const TABS = [
+  ["/admin/portadas", "Portadas"],
   ["/admin", "Voces"],
   ["/admin/editor", "Edición"],
   ["/admin/ingesta", "Ingesta"],

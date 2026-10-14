@@ -32,6 +32,9 @@ export const OUTLETS: Outlet[] = [
   { id: "rtve", name: "RTVE", url: "https://www.rtve.es", lean: 0, leanSource: PROVISIONAL,
     rss: ["https://www.rtve.es/rss/temas_noticias.xml", "https://www.rtve.es/rss/temas_espana.xml", "https://www.rtve.es/rss/temas_economia.xml"],
     access: "auto", legal: { note: "Sin reserva expresa de minería de textos detectada.", url: "https://www.rtve.es/comunes/aviso_legal.html" } },
+  { id: "elindependiente", name: "El Independiente", url: "https://www.elindependiente.com", leanSource: "Sin calibrar",
+    rss: ["https://www.elindependiente.com/feed/", "https://www.elindependiente.com/espana/feed/", "https://www.elindependiente.com/opinion/feed/"],
+    access: "auto", legal: { note: "Sin reserva de minería ni bloqueo de bots de IA (revisión 14/10/2026).", url: "https://www.elindependiente.com/aviso-legal-terminos-uso/" } },
 ];
 
 // Panel de voces (investigado el 14/10/2026: rankings de influencia, EGM, premios; fuentes en

@@ -119,3 +119,20 @@ create table if not exists rate_limits (
   key text not null, window_start timestamptz not null, count int not null default 0,
   primary key (key, window_start)
 );
+
+-- Lectura asistida de portadas: un editor revisa a mano las portadas de los medios que no permiten
+-- lectura automática y marca qué temas del día llevan y en qué posición.
+create table if not exists front_page_reviews (
+  day date not null, outlet_id text not null references outlets(id), editor text not null,
+  reviewed_at timestamptz not null default now(), primary key (day, outlet_id)
+);
+create table if not exists front_page_marks (
+  day date not null, outlet_id text not null references outlets(id), topic_id text not null,
+  position smallint, editor text not null, updated_at timestamptz not null default now(),
+  primary key (day, outlet_id, topic_id)
+);
+-- Noticias que un medio lleva en portada y que no están entre los temas detectados.
+create table if not exists front_page_extra (
+  id uuid primary key default gen_random_uuid(), day date not null, outlet_id text not null references outlets(id),
+  headline text not null, url text, position smallint, editor text not null, created_at timestamptz default now()
+);
