@@ -1,91 +1,135 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { TODAY, story as getStory } from "@/lib/mock";
+import { findStory } from "@/lib/editions";
+import { ACTIVE_REGIONS, region as regionOf } from "@/lib/regions";
 import { outlet } from "@/lib/sources";
 import { OtherViews } from "@/components/OtherViews";
 import { ClaimBadge } from "@/components/ClaimBadge";
-import { CoverageMeter, SpectrumStrip } from "@/components/Coverage";
-import type { ClaimStatus } from "@/lib/types";
-
-export function generateStaticParams() {
-  return TODAY.stories.map((s) => ({ id: s.id }));
-}
+import { SpectrumStrip } from "@/components/Coverage";
+import { ConfidenceDot, CoverageCount } from "@/components/ObjectivityBadge";
+import type { ClaimStatus, Story } from "@/lib/types";
 
 const TABS = [
+  ["objetividad", "Objetividad"],
   ["hechos", "Hechos"],
   ["enfoques", "Enfoques"],
   ["opinion", "Opinión"],
-  ["contexto", "Contexto"],
+  ["fuentes", "Fuentes"],
 ] as const;
 
-export default async function TemaPage({ params }: PageProps<"/tema/[id]">) {
-  const { id } = await params;
-  const s = getStory(id);
-  if (!s) notFound();
+const name = (id: string) => outlet(id)?.name ?? id;
 
+export default function TemaPage({ params }: PageProps<"/tema/[id]">) {
+  return (
+    <Suspense fallback={<p className="label mx-auto max-w-4xl px-4 pt-16 text-muted">Cargando el informe…</p>}>
+      <Tema params={params} />
+    </Suspense>
+  );
+}
+
+async function Tema({ params }: { params: PageProps<"/tema/[id]">["params"] }) {
+  const { id } = await params;
+  const found = await findStory(id, ACTIVE_REGIONS.map((r) => r.id));
+  if (!found) notFound();
+  const { story: s, edition } = found;
+  const r = regionOf(edition.region)!;
   const count = (st: ClaimStatus) => s.claims.filter((c) => c.status === st).length;
-  const covering = s.coverage.map((c) => c.outletId);
+  const o = s.objectivity;
 
   return (
     <main className="grain">
       <article className="mx-auto max-w-4xl px-4 pt-8 sm:pt-14">
-        <Link href="/" className="label text-muted hover:text-fg">← Las 10 de hoy</Link>
+        <Link href={edition.region === "es" ? "/" : `/${edition.region}`} className="label text-muted hover:text-fg">
+          ← Las 10 de hoy · {r.short}
+        </Link>
         <div className="mt-8 flex items-center gap-4">
           <span className="numeral text-7xl text-accent sm:text-9xl">{s.rank}</span>
-          <span className="label text-muted">Informe objetivo<br />{TODAY.date}</span>
+          <span className="label text-muted">Informe objetivo<br />{new Date(edition.date + "T12:00:00").toLocaleDateString("es-ES", { day: "numeric", month: "long" })}</span>
         </div>
-        <h1 className="display mt-6 text-5xl sm:text-8xl">{s.headline}</h1>
+        <h1 className="display mt-6 text-5xl sm:text-7xl">{s.headline}</h1>
         <p className="mt-6 text-xl text-muted">{s.dek}</p>
+        {o && <div className="mt-6"><CoverageCount outlets={o.outlets} total={o.outletsTotal} big /></div>}
 
-        {/* Resumen numérico: lo primero que se ve en móvil */}
-        <div className="mt-10 grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="mt-8 grid grid-cols-3 gap-2 sm:gap-4">
           {(["hecho", "disputado", "opinion"] as const).map((st) => (
-            <div key={st} className="rounded-2xl border border-line bg-surface p-4 sm:p-6">
+            <a key={st} href="#hechos" className="rounded-2xl border border-line bg-surface p-4 sm:p-6">
               <div className="numeral text-5xl sm:text-7xl">{count(st)}</div>
               <div className="mt-3"><ClaimBadge status={st} /></div>
-            </div>
+            </a>
           ))}
         </div>
 
-        <div className="mt-4 rounded-2xl border border-line bg-surface p-5 sm:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <span className="label text-muted">Quién lo cubre</span>
-            <CoverageMeter story={s} />
-          </div>
-          <div className="mt-5"><SpectrumStrip outletIds={covering} big /></div>
-        </div>
-
-        {/* Navegación de secciones fija en móvil */}
         <nav className="no-scrollbar sticky top-[6.5rem] z-20 -mx-4 mt-10 flex gap-2 overflow-x-auto bg-bg/85 px-4 py-3 backdrop-blur sm:top-14">
           {TABS.map(([anchor, label]) => (
-            <a key={anchor} href={`#${anchor}`} className="label shrink-0 rounded-full border border-line px-4 py-2 hover:border-accent hover:text-accent">
-              {label}
-            </a>
+            <a key={anchor} href={`#${anchor}`} className="label shrink-0 rounded-full border border-line px-4 py-2 hover:border-accent hover:text-accent">{label}</a>
           ))}
         </nav>
 
-        <Section id="hechos" title="Qué ha pasado" kicker="Afirmaciones y quién las sostiene">
+        {o && (
+          <Section id="objetividad" title="Panel de objetividad" kicker="Lo que medimos de este tema">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Box title="Cobertura">
+                <CoverageCount outlets={o.outlets} total={o.outletsTotal} />
+                <div className="mt-5"><SpectrumStrip outletIds={s.coverage.map((c) => c.outletId)} big /></div>
+                <p className="mt-3 text-sm text-muted">{s.coverage.map((c) => name(c.outletId)).join(" · ")}</p>
+              </Box>
+              <Box title="Verificación">
+                <p className="numeral text-6xl">{o.verified}</p>
+                <p className="mt-1 text-muted">afirmaciones confirmadas en fuente oficial o verificador independiente</p>
+                <div className="mt-4"><ConfidenceDot level={o.confidence} /></div>
+              </Box>
+              <Box title="Lenguaje cargado">
+                {o.loadedLanguage.length ? (
+                  <ul className="space-y-2">
+                    {o.loadedLanguage.map((l, i) => (
+                      <li key={i} className="text-[15px]">
+                        <span className="label text-[9px] text-muted">{name(l.outletId)}</span><br />
+                        <span className="text-disputed line-through decoration-1">{l.term}</span> <span className="text-muted">→</span> <span>{l.neutral}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : <p className="text-muted">No se ha detectado adjetivación valorativa relevante.</p>}
+              </Box>
+              <Box title="Lo que cada medio no cuenta">
+                {o.omissions.length ? (
+                  <ul className="space-y-2">
+                    {o.omissions.map((m, i) => <li key={i} className="text-[15px]"><span className="label text-[9px] text-muted">{name(m.outletId)}</span><br />{m.note}</li>)}
+                  </ul>
+                ) : <p className="text-muted">Sin omisiones relevantes entre los medios analizados.</p>}
+              </Box>
+            </div>
+          </Section>
+        )}
+
+        <Section id="hechos" title="Qué ha pasado" kicker="Cada afirmación, con su etiqueta y sus fuentes">
           <ul className="space-y-3">
             {s.claims.map((c, i) => (
-              <li key={i} className="rounded-2xl border border-line p-5">
-                <ClaimBadge status={c.status} />
+              <li key={i} className={`rounded-2xl border p-5 ${c.status === "disputado" ? "border-disputed/50" : "border-line"}`}>
+                <div className="flex flex-wrap items-center gap-2">
+                  <ClaimBadge status={c.status} />
+                  {c.verification && <Verification v={c.verification} />}
+                </div>
                 <p className={`mt-3 text-xl leading-snug ${c.status === "opinion" ? "italic text-muted" : ""}`}>{c.text}</p>
-                <p className="label mt-3 text-[10px] text-muted">
-                  {c.outletIds.length} {c.outletIds.length === 1 ? "medio" : "medios"} · {c.outletIds.map((o) => outlet(o).name).join(" · ")}
-                </p>
+                {c.outletIds.length > 0 && (
+                  <p className="label mt-3 text-[10px] text-muted">
+                    {c.outletIds.length} {c.outletIds.length === 1 ? "medio" : "medios"} · {c.outletIds.map(name).join(" · ")}
+                  </p>
+                )}
+                {c.verification?.note && <p className="mt-2 text-sm text-muted">{c.verification.note}</p>}
               </li>
             ))}
           </ul>
         </Section>
 
         {s.framings.length > 0 && (
-          <Section id="enfoques" title="Cómo lo cuenta cada lado" kicker="Mismo hecho, distinto foco">
+          <Section id="enfoques" title="Cómo lo cuenta cada lado" kicker="Mismo hecho, distinto foco · según la línea editorial de cada medio">
             <div className="grid gap-3 sm:grid-cols-3">
               {s.framings.map((f) => (
                 <div key={f.lean} className="rounded-2xl border border-line bg-surface p-5">
                   <p className="label text-accent">{f.lean}</p>
                   <p className="mt-3 text-lg leading-snug">{f.summary}</p>
-                  <p className="label mt-4 text-[10px] text-muted">{f.outletIds.map((o) => outlet(o).name).join(" · ")}</p>
+                  <p className="label mt-4 text-[10px] text-muted">{f.outletIds.map(name).join(" · ")}</p>
                 </div>
               ))}
             </div>
@@ -93,7 +137,7 @@ export default async function TemaPage({ params }: PageProps<"/tema/[id]">) {
         )}
 
         {s.opinions.length > 0 && (
-          <Section id="opinion" title="Otras visiones" kicker={`${s.opinions.length} voces del panel · opinión, marcada como tal`}>
+          <Section id="opinion" title="Otras visiones" kicker={`${s.opinions.length} ${s.opinions.length === 1 ? "pieza" : "piezas"} de opinión · marcadas como tal`}>
             <OtherViews story={s} />
           </Section>
         )}
@@ -110,8 +154,38 @@ export default async function TemaPage({ params }: PageProps<"/tema/[id]">) {
             )}
           </Section>
         )}
+
+        {s.sources && (
+          <Section id="fuentes" title="Fuentes" kicker="Todas las piezas analizadas, enlazadas al original">
+            <ul className="divide-y divide-line border-y border-line">
+              {s.sources.map((src) => (
+                <li key={src.url + src.outletId}>
+                  <a href={src.url} target="_blank" rel="noreferrer" className="block py-3 hover:text-accent">
+                    <span className="label text-[9px] text-muted">{name(src.outletId)}</span><br />{src.title} ↗
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </Section>
+        )}
       </article>
     </main>
+  );
+}
+
+function Verification({ v }: { v: NonNullable<Story["claims"][number]["verification"]> }) {
+  const style = v.result === "confirmado" ? "bg-accent/15 text-accent" : v.result === "contradicho" ? "bg-disputed/15 text-disputed" : "text-muted border border-line";
+  const label = v.result === "confirmado" ? "✓ Confirmado" : v.result === "contradicho" ? "✗ Contradicho" : "Sin verificar";
+  const inner = <span className={`label rounded-full px-2.5 py-1 text-[10px] ${style}`}>{label}{v.sourceName ? ` · ${v.sourceName}` : ""}</span>;
+  return v.sourceUrl ? <a href={v.sourceUrl} target="_blank" rel="noreferrer" className="hover:underline">{inner} ↗</a> : inner;
+}
+
+function Box({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-line bg-surface p-5">
+      <p className="label mb-4 text-[10px] text-muted">{title}</p>
+      {children}
+    </div>
   );
 }
 

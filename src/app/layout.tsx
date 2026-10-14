@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Inter_Tight, JetBrains_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Header } from "@/components/Header";
+import { CookieConsent } from "@/components/CookieConsent";
 import "./globals.css";
 
 const serif = Instrument_Serif({ variable: "--font-serif", subsets: ["latin"], weight: "400", style: ["normal", "italic"] });
@@ -22,9 +23,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ClerkProvider>
         <Header />
         {children}
-        <footer className="mx-auto max-w-6xl px-4 py-16 text-muted label border-t border-line mt-24">
-          Ágora · Cada afirmación enlaza a sus fuentes · <a href="/metodologia" className="underline">Metodología</a>
+        <footer className="mx-auto mt-24 max-w-6xl border-t border-line px-4 py-16">
+          <p className="display text-3xl">Ágora<span className="text-accent">.</span></p>
+          <p className="mt-2 max-w-md text-muted">Información contra la desinformación. Cada afirmación enlaza a sus fuentes.</p>
+          <nav className="label mt-8 flex flex-wrap gap-x-6 gap-y-3 text-[10px] text-muted">
+            <a href="/metodologia" className="hover:text-fg">Método</a>
+            <a href="/fuentes" className="hover:text-fg">Fuentes</a>
+            <a href="/proponer" className="hover:text-fg">Propón una voz</a>
+            <a href="/aviso-legal" className="hover:text-fg">Aviso legal</a>
+            <a href="/privacidad" className="hover:text-fg">Privacidad</a>
+            <a href="/cookies" className="hover:text-fg">Cookies</a>
+          </nav>
         </footer>
+        <CookieConsent />
         </ClerkProvider>
       </body>
     </html>

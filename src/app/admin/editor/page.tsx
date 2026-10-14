@@ -1,17 +1,20 @@
 import { Suspense } from "react";
 import { AdminNav } from "@/components/AdminNav";
-import { TODAY } from "@/lib/mock";
+import { latestEdition } from "@/lib/editions";
+import { sql } from "@/lib/db";
 import { COLUMNISTS, OUTLETS, ACCESS_LABEL } from "@/lib/sources";
 import { saveNote } from "./actions";
 
 const field = "w-full rounded-xl border border-line bg-bg px-4 outline-none focus:border-accent";
 
-// Ejemplo: qué piezas ya ha leído el equipo hoy (en producción, de `editor_notes`).
-const DONE = new Set(["presupuestos-2027:elpais", "presupuestos-2027:elmundo", "presupuestos-2027:abc", "alquiler-ley:lavanguardia"]);
-
-export default function Editor({ searchParams }: PageProps<"/admin/editor">) {
+// La página ya está dentro del <Suspense> del layout de /admin, así que puede ser asíncrona.
+export default async function Editor({ searchParams }: PageProps<"/admin/editor">) {
+  const ed = await latestEdition("es");
+  const stories = ed?.stories ?? [];
+  const notes = ed ? await sql`select topic_id, outlet_id from editor_notes where created_at > now() - interval '36 hours'` : [];
+  const DONE = new Set(notes.map((n) => `${n.topic_id}:${n.outlet_id}`));
   const manual = OUTLETS.filter((o) => o.access === "licencia");
-  const total = TODAY.stories.length * manual.length;
+  const total = stories.length * manual.length;
   return (
     <main className="mx-auto max-w-6xl px-4 pt-10">
       <p className="label text-disputed">Back-office · solo editores</p>
@@ -38,12 +41,12 @@ export default function Editor({ searchParams }: PageProps<"/admin/editor">) {
               </tr>
             </thead>
             <tbody>
-              {TODAY.stories.map((s) => (
+              {stories.map((s) => (
                 <tr key={s.id}>
                   <td className="truncate pr-2"><span className="numeral mr-2 text-xl text-accent">{s.rank}</span>{s.headline.slice(0, 38)}…</td>
                   {manual.map((o) => {
                     const done = DONE.has(`${s.id}:${o.id}`);
-                    const covers = s.coverage.some((c) => c.outletId === o.id);
+                    const covers = true; // los medios con reserva no se leen automáticamente: no sabemos si lo cubren hasta leerlos
                     return (
                       <td key={o.id} className={`h-9 rounded-lg text-center ${done ? "bg-accent text-bg" : covers ? "border border-line" : "opacity-20"}`}>
                         {done ? "✓" : covers ? "·" : ""}
@@ -55,7 +58,7 @@ export default function Editor({ searchParams }: PageProps<"/admin/editor">) {
             </tbody>
           </table>
         </div>
-        <p className="label mt-2 text-[9px] text-muted">✓ leída · punto: el medio lo lleva en portada, falta leerla · vacío: no lo cubre</p>
+        <p className="label mt-2 text-[9px] text-muted">✓ leída · punto: pendiente de leer en ese medio</p>
       </section>
 
       {/* Formulario de nota */}
@@ -63,7 +66,7 @@ export default function Editor({ searchParams }: PageProps<"/admin/editor">) {
         <h2 className="display text-3xl lg:col-span-2">Nueva lectura</h2>
         <Field label="Tema">
           <select name="storyId" className={`${field} h-12`}>
-            {TODAY.stories.map((s) => <option key={s.id} value={s.id}>{s.rank}. {s.headline}</option>)}
+            {stories.map((s) => <option key={s.id} value={s.id}>{s.rank}. {s.headline}</option>)}
           </select>
         </Field>
         <div className="grid grid-cols-2 gap-3">

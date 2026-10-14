@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import type { Article } from "./types";
-import { COLUMNISTS, OUTLETS } from "./sources";
+import { ALL_OUTLETS, COLUMNISTS } from "./sources";
 
 // Cliente HTTP de Neon: sin pool que gestionar, ideal para funciones de Vercel.
 export const sql = neon(process.env.DATABASE_URL!);
@@ -9,10 +9,11 @@ export const sql = neon(process.env.DATABASE_URL!);
 export async function syncCatalog() {
   // Primero medios y después voces: las voces referencian a su medio.
   await Promise.all(
-    OUTLETS.map((o) => sql`
-      insert into outlets (id, name, url, lean, lean_source)
-      values (${o.id}, ${o.name}, ${o.url}, ${o.lean}, ${o.leanSource})
-      on conflict (id) do update set name = excluded.name, url = excluded.url, lean = excluded.lean, lean_source = excluded.lean_source`),
+    ALL_OUTLETS.map((o) => sql`
+      insert into outlets (id, name, url, lean, lean_source, region, access)
+      values (${o.id}, ${o.name}, ${o.url}, ${o.lean ?? null}, ${o.leanSource}, ${o.region ?? "es"}, ${o.access})
+      on conflict (id) do update set name = excluded.name, url = excluded.url, lean = excluded.lean,
+        lean_source = excluded.lean_source, region = excluded.region, access = excluded.access`),
   );
   await Promise.all(
     COLUMNISTS.map((c) => sql`
@@ -28,7 +29,7 @@ export async function saveArticles(articles: Article[]): Promise<number> {
   const rows = await sql.query(
     `insert into articles (outlet_id, url, title, excerpt, kind, via, published_at)
      select * from unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[], $6::text[], $7::timestamptz[])
-     on conflict (url) do nothing
+     on conflict (outlet_id, url) do nothing
      returning id`,
     [
       articles.map((a) => a.outletId),

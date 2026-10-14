@@ -2,7 +2,8 @@ import Link from "next/link";
 
 const NAV = [
   { href: "/", label: "Hoy" },
-  { href: "/columnistas", label: "Columnistas" },
+  { href: "/columnistas", label: "Voces" },
+  { href: "/proponer", label: "Propón" },
   { href: "/fuentes", label: "Fuentes" },
   { href: "/metodologia", label: "Método" },
 ];

@@ -18,10 +18,12 @@ export interface Outlet {
   url: string;
   rss: string[];
   access: OutletAccess;
+  /** "es" = nacional; si no, id de la comunidad autónoma (ver regions.ts). */
+  region?: string;
   /** Resumen de lo que dicen sus condiciones, con enlace. */
   legal: { note: string; url?: string };
-  /** Posición editorial estimada (no la de cada periodista). */
-  lean: Lean;
+  /** Posición editorial estimada (no la de cada periodista). Vacía = sin calibrar (medios autonómicos). */
+  lean?: Lean;
   /** Fuente de esa estimación, para que sea auditable. */
   leanSource: string;
   ownership?: string;
@@ -35,10 +37,13 @@ export interface Columnist {
   id: string;
   name: string;
   kind: VoiceKind;
-  /** id de Outlet, o "independiente" para quien publica por su cuenta (Substack, X, pódcast…). */
+  /** id de Outlet del panel, o "independiente" si su medio no está en el panel (ver outletName). */
   outletId: string;
+  outletName?: string;
+  authorUrl?: string;
   feedUrl?: string;
-  lean: Lean;
+  /** Posición MEDIDA a partir de sus textos. Vacía = en calibración. Nunca se rellena a mano. */
+  lean?: Lean;
   /** Por qué está en el panel: se publica, por transparencia. */
   inclusionReason?: string;
 }
@@ -65,6 +70,13 @@ export interface Claim {
   status: ClaimStatus;
   /** Medios que lo sostienen (para "hecho": nº de fuentes independientes). */
   outletIds: string[];
+  /** Comprobación contra fuente primaria o hemeroteca, cuando el agente la ha hecho. */
+  verification?: {
+    result: "confirmado" | "contradicho" | "no_verificable";
+    sourceName?: string;
+    sourceUrl?: string;
+    note: string;
+  };
 }
 
 export interface Framing {
@@ -84,10 +96,23 @@ export interface Story {
   coverage: { outletId: string; frontPageRank?: number }[];
   claims: Claim[];
   framings: Framing[];
-  opinions: { columnistId: string; take: string; url: string }[];
+  /** columnistId solo si el autor está en nuestro panel de voces; si no, se usa author + outletId. */
+  opinions: { columnistId?: string; author?: string; outletId?: string; take: string; url: string }[];
   context: string[];
   openQuestions: string[];
   articles: Article[];
+  /** Panel de objetividad: lo que se mide de cada tema, siempre a la vista. */
+  objectivity?: {
+    outlets: number;
+    /** Denominador: medios que leemos en ese ámbito. "La cuentan outlets de outletsTotal". */
+    outletsTotal?: number;
+    spectrum: { izquierda: number; centro: number; derecha: number };
+    verified: number;
+    loadedLanguage: { outletId: string; term: string; neutral: string }[];
+    omissions: { outletId: string; note: string }[];
+    confidence: "alta" | "media" | "baja";
+  };
+  sources?: { outletId: string; url: string; title: string }[];
 }
 
 export interface DailyEdition {

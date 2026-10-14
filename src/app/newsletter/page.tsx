@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { subscribe } from "./actions";
-import { TODAY } from "@/lib/mock";
+import { latestEdition } from "@/lib/editions";
 
 export default function Newsletter({ searchParams }: PageProps<"/newsletter">) {
   return (
@@ -13,16 +13,7 @@ export default function Newsletter({ searchParams }: PageProps<"/newsletter">) {
         <SignupForm searchParams={searchParams} />
       </Suspense>
 
-      {/* Vista previa del email */}
-      <div className="mt-16 max-w-md rounded-3xl border border-line bg-surface p-6">
-        <p className="label text-[10px] text-muted">Vista previa · {TODAY.date}</p>
-        <ol className="mt-4 space-y-3">
-          {TODAY.stories.slice(0, 5).map((s) => (
-            <li key={s.id} className="flex gap-3"><span className="numeral text-3xl text-accent">{s.rank}</span><span className="leading-snug">{s.headline}</span></li>
-          ))}
-        </ol>
-        <p className="label mt-4 text-[10px] text-muted">+5 más…</p>
-      </div>
+      <Suspense><Preview /></Suspense>
     </main>
   );
 }
@@ -43,5 +34,21 @@ async function SignupForm({ searchParams }: { searchParams: PageProps<"/newslett
       {error && <p className="mt-3 text-disputed">Ese email no parece válido.</p>}
 
     </>
+  );
+}
+
+async function Preview() {
+  const ed = await latestEdition("es");
+  if (!ed) return null;
+  return (
+    <div className="mt-16 max-w-md rounded-3xl border border-line bg-surface p-6">
+      <p className="label text-[10px] text-muted">Así fue la de hoy · {ed.date}</p>
+      <ol className="mt-4 space-y-3">
+        {ed.stories.slice(0, 5).map((s) => (
+          <li key={s.id} className="flex gap-3"><span className="numeral text-3xl text-accent">{s.rank}</span><span className="leading-snug">{s.headline}</span></li>
+        ))}
+      </ol>
+      <p className="label mt-4 text-[10px] text-muted">+{Math.max(0, ed.stories.length - 5)} más…</p>
+    </div>
   );
 }

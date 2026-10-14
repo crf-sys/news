@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { COLUMNISTS, OUTLETS, VOICE_KIND_LABEL, LEAN_LABEL } from "@/lib/sources";
-import { profile } from "@/lib/columnists-mock";
+import { profile } from "@/lib/profiles";
 import { createVoice } from "./actions";
 import { sql } from "@/lib/db";
 import type { VoiceKind } from "@/lib/types";
@@ -100,7 +100,7 @@ async function VoicesList() {
                 <p className="label mt-1 text-[9px] text-muted">{VOICE_KIND_LABEL[v.kind]} · {v.outlet_id ? OUTLETS.find((o) => o.id === v.outlet_id)?.name : "Independiente"}</p>
               </div>
               <div className="text-right">
-                <p className="label text-[9px]">{lean !== undefined ? LEAN_LABEL[lean] : "—"}</p>
+                <p className="label text-[9px]">{lean !== undefined ? LEAN_LABEL[lean] : "Sin medir"}</p>
                 <p className={`label mt-1 text-[9px] ${v.status === "calibrando" ? "text-disputed" : "text-muted"}`}>{p ? `${p.articlesAnalyzed} textos` : "en calibración"}</p>
               </div>
             </li>

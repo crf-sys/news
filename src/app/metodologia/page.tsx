@@ -1,10 +1,12 @@
 const STEPS = [
-  ["Leemos", "Cada madrugada recogemos titulares, extractos y posición en portada de los 10 medios (RSS, newsletters y portadas) y las columnas del panel de opinión."],
-  ["Agrupamos", "Juntamos las piezas que hablan del mismo hecho aunque lo titulen distinto."],
-  ["Ordenamos", "Puntuación pública: 50 % cuántos medios lo llevan, 30 % lo arriba que está en sus portadas, 20 % cuántos columnistas escriben sobre ello."],
-  ["Separamos", "Cada afirmación se clasifica: Hecho (lo sostienen ≥3 medios de distinto signo), Disputado (hay medios que lo contradicen) u Opinión (valoración)."],
-  ["Citamos", "Toda afirmación enlaza a los medios de los que sale. Si no hay fuente, no se publica."],
-  ["Medimos", "Las fichas ideológicas se calculan a partir de lo que publican y muestran sus pruebas y su nivel de confianza."],
+  ["Leemos", "Tres veces al día recogemos titular, enlace y extracto de los medios que permiten la lectura automática. Los que se la reservan solo los leen personas, hasta tener licencia."],
+  ["Agrupamos", "La IA junta las piezas que hablan del mismo hecho aunque lo titulen distinto."],
+  ["Ordenamos por cobertura", "Manda cuántos medios distintos cuentan la noticia. A igualdad, cuántas piezas le dedican y su actualidad. La IA solo descarta lo que no es de interés público, como deportes, famosos o servicio."],
+  ["Leemos a fondo y comparamos", "Un agente lee las piezas completas cuando el medio lo permite, compara cifras y versiones y detecta lenguaje cargado y omisiones."],
+  ["Verificamos", "Ante cualquier duda acude a fuentes primarias (BOE, Congreso, INE, CIS, CGPJ, Banco de España, AIReF), a verificadores (Newtral, Maldita, EFE Verifica) y a nuestra hemeroteca. Si no puede comprobarlo, lo dice."],
+  ["Separamos", "Hecho: lo sostienen al menos 2 medios independientes sin contradicción, o lo confirma una fuente oficial. Disputado: hay versiones o cifras distintas. Opinión: valoraciones y predicciones."],
+  ["Citamos", "Cada afirmación enlaza a los medios y documentos de los que sale. Sin fuente, no se publica."],
+  ["Medimos, no etiquetamos", "La posición de medios y voces se calcula a partir de lo que publican, con las pruebas y la confianza a la vista. Hasta tener datos suficientes, aparece como “en calibración”."],
 ];
 
 export default function Metodologia() {

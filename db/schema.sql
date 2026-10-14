@@ -85,3 +85,31 @@ create table if not exists editor_notes (
 
 create index if not exists articles_published_idx on articles (published_at desc);
 create index if not exists articles_outlet_idx on articles (outlet_id, published_at desc);
+
+-- Ámbito de cada medio: 'es' (nacional) o el id de la comunidad autónoma.
+alter table outlets add column if not exists region text not null default 'es';
+alter table outlets add column if not exists access text not null default 'licencia';
+
+-- Edición diaria publicada por ámbito (nacional o autonómico). `stories` guarda el informe completo
+-- generado por el pipeline (afirmaciones, verificaciones, enfoques, fuentes).
+create table if not exists editions (
+  region text not null, day date not null,
+  generated_at timestamptz not null default now(),
+  model text not null, stats jsonb not null, stories jsonb not null,
+  primary key (region, day)
+);
+
+-- Propuestas públicas de voces a analizar (/proponer). El email es opcional y solo con consentimiento.
+create table if not exists voice_proposals (
+  id uuid primary key default gen_random_uuid(),
+  name text not null, url text, kind text not null, reason text not null,
+  email text, consent_at timestamptz,
+  status text not null default 'pendiente' check (status in ('pendiente','aceptada','descartada')),
+  review_note text, created_at timestamptz default now()
+);
+
+-- Una misma URL puede pertenecer a varios ámbitos (p. ej. RTVE y RTVE Andalucía): unicidad por medio + URL.
+alter table articles drop constraint if exists articles_url_key;
+create unique index if not exists articles_outlet_url_idx on articles (outlet_id, url);
+-- Línea editorial vacía = sin calibrar.
+alter table outlets alter column lean drop not null;
