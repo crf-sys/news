@@ -142,3 +142,20 @@ alter table articles add column if not exists body text;
 alter table articles add column if not exists rights text;
 alter table articles add column if not exists section text;
 alter table articles add column if not exists author text;
+
+-- API de ingesta v1.1: lotes idempotentes, registro bruto y capturas de portada.
+create table if not exists ingest_batches (
+  batch_id text primary key, provider text not null, received_at timestamptz not null default now(),
+  items int not null, snapshots int not null, result jsonb not null,
+  raw jsonb not null  -- copia del lote recibido (sin el campo "text") para no perder nada
+);
+create table if not exists front_page_snapshots (
+  id uuid primary key default gen_random_uuid(), outlet_id text not null references outlets(id),
+  provider text not null, batch_id text, captured_at timestamptz not null, screenshot_url text,
+  unique (outlet_id, provider, captured_at)
+);
+create table if not exists front_page_snapshot_items (
+  snapshot_id uuid not null references front_page_snapshots(id), position smallint not null,
+  url text not null, title text, primary key (snapshot_id, position)
+);
+alter table articles add column if not exists provider text;
