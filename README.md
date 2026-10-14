@@ -2,7 +2,7 @@
 
 Cultura política y de actualidad: las 10 noticias del día según los 10 grandes medios, separando hechos de opinión y con la ideología de cada fuente a la vista.
 
-> Prototipo con **datos de ejemplo**. Ver [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) y [docs/schema.sql](docs/schema.sql).
+> Prototipo con **datos de ejemplo**. Ver [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) y [db/schema.sql](db/schema.sql).
 
 ```bash
 npm install

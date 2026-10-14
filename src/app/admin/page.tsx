@@ -1,8 +1,10 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { COLUMNISTS, OUTLETS, VOICE_KIND_LABEL, LEAN_LABEL, affiliation } from "@/lib/sources";
+import { COLUMNISTS, OUTLETS, VOICE_KIND_LABEL, LEAN_LABEL } from "@/lib/sources";
 import { profile } from "@/lib/columnists-mock";
 import { createVoice } from "./actions";
+import { sql } from "@/lib/db";
+import type { VoiceKind } from "@/lib/types";
 import { AdminNav } from "@/components/AdminNav";
 
 const field = "h-12 w-full rounded-xl border border-line bg-bg px-4 outline-none focus:border-accent";
@@ -49,24 +51,9 @@ export default function Admin({ searchParams }: PageProps<"/admin">) {
 
         {/* Panel actual */}
         <div>
-          <h2 className="display text-3xl">Panel actual · {COLUMNISTS.length}</h2>
-          <ul className="mt-4 divide-y divide-line border-y border-line">
-            {COLUMNISTS.map((c) => {
-              const p = profile(c.id);
-              return (
-                <li key={c.id} className="flex items-center justify-between gap-4 py-4">
-                  <div className="min-w-0">
-                    <Link href={`/columnista/${c.id}`} className="font-semibold hover:text-accent">{c.name}</Link>
-                    <p className="label mt-1 text-[9px] text-muted">{VOICE_KIND_LABEL[c.kind]} · {affiliation(c)}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="label text-[9px]">{LEAN_LABEL[c.lean]}</p>
-                    <p className="label mt-1 text-[9px] text-muted">{p ? `${p.articlesAnalyzed} textos` : "en calibración"}</p>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+          <Suspense fallback={<p className="label text-muted">Cargando panel…</p>}>
+            <VoicesList />
+          </Suspense>
           <div className="mt-8 rounded-3xl border border-dashed border-line p-6">
             <h3 className="display text-2xl">Equilibrio del panel</h3>
             <div className="mt-4 flex items-end gap-2 h-20">
@@ -92,4 +79,34 @@ async function Flash({ searchParams }: { searchParams: PageProps<"/admin">["sear
   if (ok) return <p className="mt-6 rounded-xl bg-accent/10 p-4 text-accent">Voz registrada. Analizando sus últimos 12 meses…</p>;
   if (error) return <p className="mt-6 rounded-xl bg-disputed/10 p-4 text-disputed">Faltan nombre o motivo de inclusión.</p>;
   return null;
+}
+
+async function VoicesList() {
+  const voices = (await sql`
+    select v.id, v.name, v.kind, v.outlet_id, v.status, count(c.id)::int as channels
+    from voices v left join voice_channels c on c.voice_id = v.id
+    group by v.id order by v.created_at desc`) as { id: string; name: string; kind: VoiceKind; outlet_id: string | null; status: string; channels: number }[];
+  return (
+    <>
+      <h2 className="display text-3xl">Panel actual · {voices.length}</h2>
+      <ul className="mt-4 divide-y divide-line border-y border-line">
+        {voices.map((v) => {
+          const p = profile(v.id);
+          const lean = COLUMNISTS.find((c) => c.id === v.id)?.lean;
+          return (
+            <li key={v.id} className="flex items-center justify-between gap-4 py-4">
+              <div className="min-w-0">
+                {p ? <Link href={`/columnista/${v.id}`} className="font-semibold hover:text-accent">{v.name}</Link> : <span className="font-semibold">{v.name}</span>}
+                <p className="label mt-1 text-[9px] text-muted">{VOICE_KIND_LABEL[v.kind]} · {v.outlet_id ? OUTLETS.find((o) => o.id === v.outlet_id)?.name : "Independiente"}</p>
+              </div>
+              <div className="text-right">
+                <p className="label text-[9px]">{lean !== undefined ? LEAN_LABEL[lean] : "—"}</p>
+                <p className={`label mt-1 text-[9px] ${v.status === "calibrando" ? "text-disputed" : "text-muted"}`}>{p ? `${p.articlesAnalyzed} textos` : "en calibración"}</p>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </>
+  );
 }

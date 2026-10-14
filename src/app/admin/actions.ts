@@ -1,17 +1,23 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { sql } from "@/lib/db";
 
-// Alta de una voz. Al guardarla, el sistema:
-//  1. la inserta en `voices` + `voice_channels` (RSS, newsletter, web, redes),
-//  2. lanza un backfill de sus últimos 12 meses de textos,
-//  3. calcula su ficha ideológica (pipeline/profile.ts) y la marca "en calibración"
-//     hasta tener ≥ 30 textos analizados,
-//  4. desde ese momento sus piezas se enlazan automáticamente a los temas del día.
-// TODO: auth (solo editores), validación con zod, persistencia en Postgres.
+// Alta de una voz. Queda en estado "calibrando" hasta que el backfill (F3) analice ≥ 30 textos.
+// TODO: auth (solo editores) y lanzar el backfill de 12 meses.
 export async function createVoice(formData: FormData) {
-  const name = String(formData.get("name") ?? "").trim();
-  const reason = String(formData.get("reason") ?? "").trim();
-  if (!name || !reason) redirect("/admin?error=1");
+  const f = (k: string) => String(formData.get(k) ?? "").trim();
+  if (!f("name") || !f("reason")) redirect("/admin?error=1");
+
+  const id = `voz-${f("name").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+  await sql`
+    insert into voices (id, name, kind, outlet_id, inclusion_reason)
+    values (${id}, ${f("name")}, ${f("kind")}, ${f("outletId") === "independiente" ? null : f("outletId")}, ${f("reason")})
+    on conflict (id) do nothing`;
+  const channels = [["rss", f("feedUrl")], ["newsletter", f("newsletter")], ["social", f("social")]].filter(([, v]) => v);
+  for (const [kind, value] of channels) {
+    await sql`insert into voice_channels (voice_id, kind, value) values (${id}, ${kind}, ${value})`;
+  }
+  await sql`insert into audit_log (actor, entity, entity_id, change, reason) values ('editor', 'voice', ${id}, ${JSON.stringify({ alta: true })}, ${f("reason")})`;
   redirect("/admin?ok=1");
 }

@@ -33,7 +33,7 @@ Los crons se activarán en F1 en `vercel.json`. En plan Hobby solo se permite 1 
 
 ## Modelo de datos
 
-`docs/schema.sql`. Claves del diseño:
+`db/schema.sql`. Claves del diseño:
 
 - **Voces genéricas** (`voices`): no solo columnistas; cualquier líder de opinión. El motivo de inclusión es público.
 - **Temas persistentes** (`topics` + `topic_days`): "Presupuestos 2027" es un único hilo que aparece varios días → se puede ver su evolución y todas las visiones acumuladas.

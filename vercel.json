@@ -1,1 +1,7 @@
-{}
+{
+  "crons": [
+    { "path": "/api/cron/ingest?turno=manana", "schedule": "0 5 * * *" },
+    { "path": "/api/cron/ingest?turno=mediodia", "schedule": "0 11 * * *" },
+    { "path": "/api/cron/ingest?turno=tarde", "schedule": "0 17 * * *" }
+  ]
+}
