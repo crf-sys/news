@@ -1,5 +1,5 @@
 const STEPS = [
-  ["Leemos", "Tres veces al día recogemos titular, enlace y extracto de los medios que permiten la lectura automática. Los que se la reservan solo los leen personas, hasta tener licencia."],
+  ["Leemos", "Tres veces al día revisamos las portadas y las últimas noticias de los grandes diarios nacionales y de los medios de referencia de cada comunidad."],
   ["Agrupamos", "La IA junta las piezas que hablan del mismo hecho aunque lo titulen distinto."],
   ["Ordenamos por cobertura", "Manda cuántos medios distintos cuentan la noticia. A igualdad, cuántas piezas le dedican y su actualidad. La IA solo descarta lo que no es de interés público, como deportes, famosos o servicio."],
   ["Leemos a fondo y comparamos", "Un agente lee las piezas completas cuando el medio lo permite, compara cifras y versiones y detecta lenguaje cargado y omisiones."],
