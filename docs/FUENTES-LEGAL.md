@@ -48,5 +48,17 @@ Clave: el art. 67.3 del RDL 24/2021 (que transpone el art. 4.3 de la Directiva U
 | Público | No detectada | Sin bloqueos | **Automático** cuando se localice un feed válido (no hay RSS público; valorar sitemap de noticias) |
 | infoLibre | No detectada | Bloquea los principales bots de IA | Licencia |
 | El Independiente | No detectada | Sin bloqueos | **Automático** (feed: /feed/) |
+| La Marea | No detectada | Sin bloqueo global | **Automático** (RSS público, metadatos) |
+| Nueva Tribuna | No detectada | Sin bloqueo global | **Automático** (RSS público, metadatos) |
+| Diario Red | No detectada | Sin bloqueo global | **Automático** (RSS público, metadatos) |
+| Libertad Digital | No reserva TDM detectada; limita la reproducción | Sin bloqueo global | **Automático** (RSS público, metadatos) |
+| OKDIARIO | No detectada | Sin bloqueo global | **Automático** (RSS público, metadatos) |
+| The Objective | No detectada | Sin bloqueo global | **Automático** (RSS público, metadatos) |
+
+Todos estos medios nuevos entran con `leanSource: "Sin calibrar"`: su inclusión busca ampliar la
+pluralidad de fuentes, pero el sistema no les asigna orientación ideológica sin una calibración
+documentada. Público, El Salto y Vozpópuli quedan pendientes por no haberse localizado un RSS XML
+público válido. El Debate queda fuera porque devuelve HTTP 403 al bot identificado; no se intenta
+sortear esa restricción.
 
 Consecuencia para el "Especial Radios": de las grandes, solo RNE puede analizarse automáticamente hoy. SER, Onda Cero, COPE, RAC1 y Catalunya Ràdio requieren licencia o lectura humana desde el panel de edición.
