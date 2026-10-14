@@ -3,6 +3,7 @@ import Link from "next/link";
 import { COLUMNISTS, OUTLETS, VOICE_KIND_LABEL, LEAN_LABEL, affiliation } from "@/lib/sources";
 import { profile } from "@/lib/columnists-mock";
 import { createVoice } from "./actions";
+import { AdminNav } from "@/components/AdminNav";
 
 const field = "h-12 w-full rounded-xl border border-line bg-bg px-4 outline-none focus:border-accent";
 
@@ -11,6 +12,7 @@ export default function Admin({ searchParams }: PageProps<"/admin">) {
     <main className="mx-auto max-w-6xl px-4 pt-10">
       <p className="label text-disputed">Back-office · solo editores</p>
       <h1 className="display mt-4 text-6xl sm:text-8xl">Voces</h1>
+      <AdminNav active="/admin" />
       <p className="mt-3 max-w-2xl text-muted">
         Alta de columnistas, líderes de opinión, periodistas y académicos. Todo lo que se registra aquí es público
         (incluido el motivo de inclusión): la transparencia empieza por saber a quién leemos y por qué.

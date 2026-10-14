@@ -3,11 +3,23 @@
 /** Eje ideológico: -2 izquierda … 0 centro … +2 derecha. Provisional, ver /metodologia. */
 export type Lean = -2 | -1 | 0 | 1 | 2;
 
+/**
+ * Cómo podemos leer cada medio, según sus condiciones legales (ver docs/FUENTES-LEGAL.md):
+ *  - auto: sin reserva expresa de minería de textos → RSS automático (solo metadatos + enlace).
+ *  - licencia: el medio se reserva la minería de textos (art. 67.3 RDL 24/2021) o bloquea bots de IA
+ *    → solo lectura humana desde el panel de edición hasta tener licencia.
+ *  - licenciado: hay licencia/permiso por escrito → automático, incluida la zona de suscriptor si lo cubre.
+ */
+export type OutletAccess = "auto" | "licencia" | "licenciado";
+
 export interface Outlet {
   id: string;
   name: string;
   url: string;
   rss: string[];
+  access: OutletAccess;
+  /** Resumen de lo que dicen sus condiciones, con enlace. */
+  legal: { note: string; url?: string };
   /** Posición editorial estimada (no la de cada periodista). */
   lean: Lean;
   /** Fuente de esa estimación, para que sea auditable. */
@@ -109,4 +121,23 @@ export interface ColumnistProfile {
   /** Tono medio cuando habla de cada actor (-1 crítico … +1 favorable). */
   stance: { actor: string; tone: number; mentions: number }[];
   featured: { title: string; url: string; date: string; why: string; reach?: string }[];
+}
+
+/**
+ * Nota de lectura humana: un editor lee una pieza (también de medios sin licencia, con su
+ * suscripción) y escribe CON SUS PALABRAS qué afirma, cómo lo enfoca y qué valora. La IA trabaja
+ * sobre esta nota, nunca sobre el texto del medio.
+ */
+export interface EditorNote {
+  id: string;
+  storyId: string;
+  outletId: string;
+  columnistId?: string;
+  url: string;
+  kind: Article["kind"];
+  claims: string;
+  framing: string;
+  opinions: string;
+  editor: string;
+  createdAt: string;
 }

@@ -1,4 +1,4 @@
-import { OUTLETS, LEAN_LABEL } from "@/lib/sources";
+import { OUTLETS, LEAN_LABEL, ACCESS_LABEL } from "@/lib/sources";
 import type { Lean } from "@/lib/types";
 
 export default function Fuentes() {
@@ -23,6 +23,21 @@ export default function Fuentes() {
         ))}
       </div>
       <div className="mt-3 h-2 rounded-full bg-gradient-to-r from-fg/10 via-fg/60 to-fg/10" />
+
+      <section className="mt-20">
+        <p className="label text-muted">Transparencia</p>
+        <h2 className="display mt-2 text-5xl sm:text-7xl">Cómo leemos a cada medio</h2>
+        <p className="mt-3 max-w-2xl text-muted">Respetamos lo que cada medio dice en sus condiciones. Si se reserva el análisis automático, solo lo lee una persona hasta tener licencia.</p>
+        <ul className="mt-8 divide-y divide-line border-y border-line">
+          {OUTLETS.map((o) => (
+            <li key={o.id} className="grid gap-2 py-5 sm:grid-cols-[12rem_14rem_1fr]">
+              <span className="display text-2xl">{o.name}</span>
+              <span className={`label self-center text-[10px] ${o.access === "licencia" ? "text-disputed" : "text-accent"}`}>{ACCESS_LABEL[o.access]}</span>
+              <span className="text-sm text-muted">{o.legal.note} {o.legal.url && <a href={o.legal.url} className="underline" target="_blank" rel="noreferrer">Condiciones ↗</a>}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
     </main>
   );
 }

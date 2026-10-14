@@ -1,28 +1,123 @@
-import type { Article } from "../types";
+import type { Article, Outlet } from "../types";
 import { OUTLETS } from "../sources";
 
-// ETAPA 1 — Ingesta. Tres canales, de más a menos preferible:
-//  1. RSS oficial de cada medio y de cada columnista (legal, estable, con metadatos).
-//  2. Newsletters por email: buzón dedicado (p.ej. ingest@agora…) suscrito a cada medio.
-//     Un webhook de entrada (Postmark/Resend/SES inbound) llama a /api/ingest/email.
-//  3. Portadas web: solo para leer el ORDEN de las piezas en la home (señal de relevancia),
-//     respetando robots.txt. Nunca se guarda ni se republica el cuerpo del artículo.
+// ETAPA 1 — Ingesta. Un único motor para todos los medios; lo que cambia por medio es su
+// configuración en sources.ts. Solo se leen automáticamente los medios con access "auto" o
+// "licenciado": el resto entra por el panel de edición (lectura humana) hasta tener licencia.
+//
 // Del contenido solo se conserva: titular, URL, fecha, autor, sección y un extracto breve.
+// Frecuencia prevista: 3–4 veces al día. Identificación honesta del bot (USER_AGENT) y
+// respeto a robots.txt.
 
-export async function ingestRss(): Promise<Article[]> {
-  const feeds = OUTLETS.flatMap((o) => o.rss.map((url) => ({ outletId: o.id, url })));
-  // TODO: fetch + parseo (p.ej. `rss-parser`), normalizar a Article, deduplicar por URL canónica.
-  void feeds;
-  return [];
+export const USER_AGENT = "Mozilla/5.0 (compatible; AgoraBot/0.1; +https://agora10.com/metodologia)";
+const EXCERPT_MAX = 280;
+
+export const readableOutlets = () => OUTLETS.filter((o) => o.access === "auto" || o.access === "licenciado");
+
+export interface IngestReport {
+  outletId: string;
+  feed: string;
+  ok: boolean;
+  items: number;
+  error?: string;
+}
+
+export async function ingestRss(): Promise<{ articles: Article[]; report: IngestReport[] }> {
+  const jobs = readableOutlets().flatMap((o) => o.rss.map((feed) => ({ outlet: o, feed })));
+  const results = await Promise.all(jobs.map(({ outlet, feed }) => readFeed(outlet, feed)));
+
+  const seen = new Set<string>();
+  const articles: Article[] = [];
+  for (const r of results) {
+    for (const a of r.articles) {
+      if (seen.has(a.url)) continue; // la misma pieza aparece en varios feeds de sección
+      seen.add(a.url);
+      articles.push(a);
+    }
+  }
+  articles.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+  return { articles, report: results.map((r) => r.report) };
+}
+
+async function readFeed(outlet: Outlet, feed: string): Promise<{ articles: Article[]; report: IngestReport }> {
+  try {
+    const res = await fetch(feed, { headers: { "User-Agent": USER_AGENT }, signal: AbortSignal.timeout(20_000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const xml = await decode(res);
+    const articles = parseRss(xml).map((it) => toArticle(outlet, feed, it));
+    return { articles, report: { outletId: outlet.id, feed, ok: true, items: articles.length } };
+  } catch (e) {
+    return { articles: [], report: { outletId: outlet.id, feed, ok: false, items: 0, error: String(e) } };
+  }
+}
+
+/** Algunos feeds (RTVE) vienen en ISO-8859-1. */
+async function decode(res: Response): Promise<string> {
+  const buf = await res.arrayBuffer();
+  const head = new TextDecoder("ascii").decode(buf.slice(0, 200));
+  const charset = /encoding="([^"]+)"/i.exec(head)?.[1] ?? /charset=([\w-]+)/i.exec(res.headers.get("content-type") ?? "")?.[1] ?? "utf-8";
+  return new TextDecoder(charset.toLowerCase()).decode(buf);
+}
+
+interface RssItem {
+  title: string;
+  link: string;
+  description: string;
+  pubDate: string;
+  creator?: string;
+  categories: string[];
+}
+
+export function parseRss(xml: string): RssItem[] {
+  return [...xml.matchAll(/<item[\s>][\s\S]*?<\/item>/g)].map(([item]) => ({
+    title: tag(item, "title"),
+    link: tag(item, "link") || tag(item, "guid"),
+    description: tag(item, "description"),
+    pubDate: tag(item, "pubDate") || tag(item, "dc:date"),
+    creator: tag(item, "dc:creator") || tag(item, "author") || undefined,
+    categories: [...item.matchAll(/<category[^>]*>([\s\S]*?)<\/category>/g)].map((m) => clean(m[1])),
+  }));
+}
+
+function tag(xml: string, name: string): string {
+  const m = new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)</${name}>`).exec(xml);
+  return m ? clean(m[1]) : "";
+}
+
+function clean(s: string): string {
+  return s
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function toArticle(outlet: Outlet, feed: string, it: RssItem): Article {
+  const url = it.link.split("#")[0];
+  const date = new Date(it.pubDate);
+  const excerpt = it.description.length > EXCERPT_MAX ? it.description.slice(0, EXCERPT_MAX).replace(/\s\S*$/, "") + "…" : it.description;
+  return {
+    id: `${outlet.id}:${url}`,
+    outletId: outlet.id,
+    url,
+    title: it.title,
+    excerpt,
+    publishedAt: isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString(),
+    via: "rss",
+    kind: /opini/i.test(feed) || it.categories.some((c) => /opini|tribuna|columna/i.test(c)) ? "opinion" : "noticia",
+  };
 }
 
 export async function ingestEmail(raw: { from: string; subject: string; html: string }): Promise<Article[]> {
-  // TODO: mapear remitente → outletId, extraer enlaces + titulares del HTML de la newsletter.
+  // TODO (F4): mapear remitente → outletId y extraer enlaces + titulares de la newsletter.
   void raw;
   return [];
 }
 
 export async function scrapeFrontPages(): Promise<Record<string, string[]>> {
-  // TODO: devuelve, por medio, las URLs de portada en orden (1 = apertura).
+  // TODO (F1b): orden de portada, solo para medios "auto"/"licenciado" y respetando robots.txt.
   return {};
 }
