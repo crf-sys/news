@@ -21,7 +21,7 @@ const Item = z.object({
   title: z.string().min(3).max(400),
   subtitle: z.string().max(1000).optional(),
   text: z.string().max(60_000).optional(),
-  section: z.string().max(80).optional(),
+  section: z.string().max(300).transform((s) => s.slice(0, 120)).optional(),
   author: z.string().max(200).optional(),
   kind: z.enum(["noticia", "opinion", "analisis", "entrevista", "editorial"]).default("noticia"),
   published_at: iso,
