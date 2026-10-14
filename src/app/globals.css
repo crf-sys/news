@@ -1,26 +1,41 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #0b0b0c;
+  --surface: #151517;
+  --line: #2a2a2e;
+  --fg: #f4f2ee;
+  --muted: #8d8a85;
+  --accent: #e4ff3a;
+  --fact: #e4ff3a;
+  --disputed: #ffb23e;
+  --opinion: #b9a7ff;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-fact: var(--fact);
+  --color-disputed: var(--disputed);
+  --color-opinion: var(--opinion);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-serif);
+  --font-mono: var(--font-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+html { background: var(--bg); color-scheme: dark; }
+body { background: var(--bg); color: var(--fg); }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.display { font-family: var(--font-serif); letter-spacing: -0.02em; line-height: 0.92; }
+.label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
+.numeral { font-family: var(--font-serif); font-variant-numeric: lining-nums; line-height: 0.8; }
+.grain {
+  background-image: radial-gradient(circle at 20% -10%, rgba(228,255,58,0.12), transparent 50%),
+                    radial-gradient(circle at 110% 30%, rgba(185,167,255,0.08), transparent 45%);
 }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }

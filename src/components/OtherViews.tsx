@@ -1,0 +1,38 @@
+import Link from "next/link";
+import { LEAN_LABEL, VOICE_KIND_LABEL, affiliation, columnist } from "@/lib/sources";
+import type { Lean, Story } from "@/lib/types";
+
+/**
+ * "Otras visiones": todas las voces del panel que han opinado sobre un tema,
+ * colocadas en el espectro. En móvil es un carrusel con snap; en escritorio, 5 columnas.
+ * `highlight` marca la voz desde la que se llega (p.ej. desde su ficha).
+ */
+export function OtherViews({ story, highlight }: { story: Story; highlight?: string }) {
+  const lanes: Lean[] = [-2, -1, 0, 1, 2];
+  const views = story.opinions.map((o) => ({ ...o, c: columnist(o.columnistId) }));
+  return (
+    <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-0">
+      {lanes.map((lean) => {
+        const inLane = views.filter((v) => v.c.lean === lean);
+        return (
+          <div key={lean} className="w-[78%] shrink-0 snap-center sm:w-auto">
+            <div className="label mb-2 flex items-center justify-between text-[10px] text-muted">
+              <span>{LEAN_LABEL[lean]}</span><span>{inLane.length}</span>
+            </div>
+            <div className="space-y-2">
+              {inLane.length === 0 && <div className="rounded-2xl border border-dashed border-line p-4 text-sm text-muted">Sin voces del panel</div>}
+              {inLane.map((v) => (
+                <div key={v.columnistId} className={`rounded-2xl border p-4 ${v.columnistId === highlight ? "border-accent bg-accent/5" : "border-line bg-surface"}`}>
+                  <Link href={`/columnista/${v.c.id}`} className="font-semibold hover:text-accent">{v.c.name}</Link>
+                  <p className="label mt-1 text-[9px] text-muted">{VOICE_KIND_LABEL[v.c.kind]} · {affiliation(v.c)}</p>
+                  <p className="mt-3 italic leading-snug text-fg/85">“{v.take}”</p>
+                  <a href={v.url} className="label mt-3 inline-block text-[9px] text-opinion">Leer original ↗</a>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
