@@ -75,7 +75,9 @@ const schema = z.object({
 
 const blocOf = (lean: number | undefined) => lean === undefined ? null : (lean < 0 ? "izquierda" : lean > 0 ? "derecha" : "centro");
 
-export async function analyzeCluster(cluster: Cluster, rank: number, model: string): Promise<Story> {
+export interface Usage { input: number; output: number; steps: number }
+
+export async function analyzeCluster(cluster: Cluster, rank: number, model: string): Promise<{ story: Story; usage: Usage }> {
   const pieces = cluster.articles.slice(0, 20).map((a) => {
     const o = outlet(a.outlet_id);
     return `- [${a.kind === "opinion" ? "OPINIÓN" : "NOTICIA"}] medio=${o.id} (${o.name}, línea ${o.lean === undefined ? "sin calibrar" : LEAN_LABEL[o.lean]}; lectura completa: ${o.access === "auto" || o.access === "licenciado" ? "sí" : "no"})\n  ${a.title}\n  ${a.excerpt ?? ""}\n  ${a.url}`;
@@ -90,7 +92,9 @@ export async function analyzeCluster(cluster: Cluster, rank: number, model: stri
     output: Output.object({ schema }),
     prompt: `Fecha de hoy: ${new Date().toLocaleDateString("es-ES", { timeZone: "Europe/Madrid", dateStyle: "full" })}.\n\nPiezas del tema:\n${pieces.join("\n")}\n\nElabora el informe objetivo.`,
   });
-  const { output } = await run().catch((e) => (NoObjectGeneratedError.isInstance(e) ? run() : Promise.reject(e)));
+  const result = await run().catch((e) => (NoObjectGeneratedError.isInstance(e) ? run() : Promise.reject(e)));
+  const { output } = result;
+  const usage = { input: result.totalUsage.inputTokens ?? 0, output: result.totalUsage.outputTokens ?? 0, steps: result.steps.length };
 
   const valid = new Set(cluster.outlets);
   const known = (ids: string[]) => ids.filter((id) => valid.has(id));
@@ -100,7 +104,7 @@ export async function analyzeCluster(cluster: Cluster, rank: number, model: stri
     if (b) spectrum[b]++;
   }
 
-  return {
+  const story: Story = {
     id: slug(output.headline),
     rank,
     section: output.section,
@@ -126,6 +130,7 @@ export async function analyzeCluster(cluster: Cluster, rank: number, model: stri
       confidence: output.confidence,
     },
   };
+  return { story, usage };
 }
 
 const slug = (s: string) =>

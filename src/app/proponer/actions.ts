@@ -2,12 +2,14 @@
 
 import { redirect } from "next/navigation";
 import { sql } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
 const KINDS = ["columnista", "lider_opinion", "periodista", "academico", "think_tank"];
 
 export async function propose(formData: FormData) {
   const f = (k: string) => String(formData.get(k) ?? "").trim();
   if (f("website")) redirect("/proponer?ok=1"); // honeypot anti-spam: los humanos no ven este campo
+  if (!(await rateLimit("proponer", 5))) redirect("/proponer?error=limite");
   const email = f("email").toLowerCase();
   const consent = formData.get("consent") === "on";
   if (!f("name") || f("reason").length < 20 || !KINDS.includes(f("kind"))) redirect("/proponer?error=campos");

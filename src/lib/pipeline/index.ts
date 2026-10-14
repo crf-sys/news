@@ -17,14 +17,25 @@ export async function buildEdition(region: string) {
   const top = await rankClusters(clusters);
 
   // En paralelo; si un tema falla, la edición sale igualmente con el resto.
-  const results = await Promise.allSettled(top.map((c, i) => analyzeCluster(c, i + 1, model)));
-  const stories = results.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
+  // Si el modelo principal falla (p. ej. sin saldo), se reintenta con el económico para no dejar huecos.
+  const results = await Promise.allSettled(
+    top.map((c, i) =>
+      analyzeCluster(c, i + 1, model).catch((e) =>
+        model === MODELS.analysisRegional ? Promise.reject(e) : analyzeCluster(c, i + 1, MODELS.analysisRegional),
+      ),
+    ),
+  );
+  const stories = results.flatMap((r) => (r.status === "fulfilled" ? [r.value.story] : []));
+  const tokens = results.reduce(
+    (t, r) => (r.status === "fulfilled" ? { input: t.input + r.value.usage.input, output: t.output + r.value.usage.output, steps: t.steps + r.value.usage.steps } : t),
+    { input: 0, output: 0, steps: 0 },
+  );
   for (const s of stories) if (s.objectivity) s.objectivity.outletsTotal = outletsAvailable;
   stories.forEach((s, i) => (s.rank = i + 1));
   const errors = results.flatMap((r) => (r.status === "rejected" ? [String(r.reason).slice(0, 300)] : []));
 
   const day = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
-  const stats = { pool: pool.length, clusters: clusters.length, stories: stories.length, errors, seconds: Math.round((Date.now() - started) / 1000) };
+  const stats = { pool: pool.length, clusters: clusters.length, stories: stories.length, tokens, errors, seconds: Math.round((Date.now() - started) / 1000) };
   if (stories.length) {
     await sql`
       insert into editions (region, day, generated_at, model, stats, stories)

@@ -2,8 +2,10 @@ import { neon } from "@neondatabase/serverless";
 import type { Article } from "./types";
 import { ALL_OUTLETS, COLUMNISTS } from "./sources";
 
-// Cliente HTTP de Neon: sin pool que gestionar, ideal para funciones de Vercel.
-export const sql = neon(process.env.DATABASE_URL!);
+// Cliente HTTP de Neon. La web usa el usuario `agora_app` (APP_DATABASE_URL), con permisos mínimos:
+// leer, insertar y actualizar; nunca borrar ni cambiar el esquema (ver scripts/app-role.mjs).
+// DATABASE_URL (propietario) queda solo para migraciones y scripts locales.
+export const sql = neon((process.env.APP_DATABASE_URL ?? process.env.DATABASE_URL)!);
 
 /** Copia medios y voces definidos en código a la BD (upsert). Barato: se llama antes de cada ingesta. */
 export async function syncCatalog() {

@@ -110,6 +110,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 async function Flash({ searchParams }: { searchParams: PageProps<"/proponer">["searchParams"] }) {
   const { ok, error } = await searchParams;
   if (ok) return <p className="mt-6 rounded-xl bg-accent/10 p-4 text-accent">Gracias. Revisaremos la propuesta con los criterios públicos del panel.</p>;
+  if (error === "limite") return <p className="mt-6 rounded-xl bg-disputed/10 p-4 text-disputed">Has enviado varias propuestas seguidas. Inténtalo de nuevo en una hora.</p>;
   if (error === "email") return <p className="mt-6 rounded-xl bg-disputed/10 p-4 text-disputed">Si dejas tu email, debe ser válido y tienes que aceptar la política de privacidad.</p>;
   if (error) return <p className="mt-6 rounded-xl bg-disputed/10 p-4 text-disputed">Faltan datos: nombre y un motivo de al menos 20 caracteres.</p>;
   return null;

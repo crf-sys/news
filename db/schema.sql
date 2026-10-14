@@ -113,3 +113,9 @@ alter table articles drop constraint if exists articles_url_key;
 create unique index if not exists articles_outlet_url_idx on articles (outlet_id, url);
 -- Línea editorial vacía = sin calibrar.
 alter table outlets alter column lean drop not null;
+
+-- Límite de peticiones para formularios públicos. Solo se guarda un hash de la IP, nunca la IP.
+create table if not exists rate_limits (
+  key text not null, window_start timestamptz not null, count int not null default 0,
+  primary key (key, window_start)
+);
