@@ -26,7 +26,10 @@
 Semanal      Fichas      recálculo de ejes ideológicos por voz (histórico + evidencias)
 ```
 
-Código: `src/lib/pipeline/*` (una etapa por archivo), crons en `vercel.json` → `src/app/api/cron/*`.
+Código: `src/lib/pipeline/*` (una etapa por archivo), endpoints en `src/app/api/cron/*`.
+
+Los crons se activarán en F1 en `vercel.json`. En plan Hobby solo se permite 1 ejecución diaria por cron:
+`/api/cron/daily` a las `0 4 * * *` y `/api/cron/newsletter` a las `0 5 * * *` (UTC; en invierno hay que ajustar +1 h o pasar a Pro).
 
 ## Modelo de datos
 
