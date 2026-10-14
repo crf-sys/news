@@ -63,10 +63,7 @@ Una captura por medio cada 2–4 h. Las posiciones se relacionan con las piezas 
 - **El proveedor asigna `rights` y Ágora no lo deduce.**
 - Para los medios que se reservan la minería de textos (El País, El Mundo, ABC, La Vanguardia, 20minutos, El Confidencial y La Razón, además de los autonómicos indicados en `docs/FUENTES-LEGAL.md`), `licenciado` **solo se acepta si ese medio figura en la lista de licencias validadas por Ágora**. Esa lista se actualiza tras revisar la documentación de la licencia del proveedor.
 - Si el medio no está validado, la pieza **se guarda como `sin_licencia`, queda fuera del análisis automático** y la respuesta lo indica en `warnings`.
-- No se acepta una afirmación genérica de "contenido público". El proveedor entrega antes del piloto esta **matriz por medio**:
-
-| Medio | Secciones cubiertas | Método de acceso (RSS, web, API del editor…) | Licencia/acuerdo (referencia y alcance) | ¿Cubre análisis automatizado? | `rights` que enviará | ¿Respeta robots.txt y condiciones? |
-|---|---|---|---|---|---|---|
+- **Fase actual:** no se exige documentación de licencias. El piloto usa solo medios que no se reservan la minería de textos, así que pueden enviarse con `rights: "publico"`. La matriz de licencias por medio se pedirá cuando se quiera ampliar a los medios con reserva.
 
 ## 4. Volumen y calendario
 - Unos 30 medios, 3.000–8.000 piezas al día y capturas de portada cada 2–4 h.
@@ -82,4 +79,4 @@ Una captura por medio cada 2–4 h. Las posiciones se relacionan con las piezas 
 - envía lotes de hasta 500 piezas;
 - gestiona bien las respuestas 400, 401 y 207 y los reintentos con el mismo `batch_id`;
 - no pierde datos ante fallos temporales (cotejo con nuestros RSS: ≥ 98 % de lo publicado);
-- respeta las condiciones y restricciones de cada medio.
+- respeta el robots.txt y las condiciones de cada medio.
