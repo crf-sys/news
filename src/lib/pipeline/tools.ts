@@ -3,6 +3,7 @@ import { z } from "zod";
 import { sql } from "../db";
 import { ALL_OUTLETS } from "../sources";
 import { USER_AGENT, readableOutlets } from "./ingest";
+import { licenseScope } from "../licenses";
 
 // Herramientas del agente verificador. Cada una deja rastro (URL) para que toda afirmación
 // verificada en la web pueda enlazar a su fuente.
@@ -17,7 +18,10 @@ export const PRIMARY_SOURCES = [
 /** Verificadores independientes adheridos a la red IFCN. */
 export const FACT_CHECKERS = ["newtral.es", "maldita.es", "verifica.efe.com"];
 
-const readableDomains = () => readableOutlets().map((o) => new URL(o.url).hostname.replace(/^www\./, ""));
+const readableDomains = () =>
+  readableOutlets()
+    .filter((o) => o.access !== "licencia" || licenseScope(o.id) === "texto_completo")
+    .map((o) => new URL(o.url).hostname.replace(/^www\./, ""));
 
 export const verificationTools = {
   buscar_fuente_primaria: gateway.tools.perplexitySearch({
@@ -62,6 +66,10 @@ export const verificationTools = {
       const [stored] = await sql`
         select a.body from articles a join outlets o on o.id = a.outlet_id
         where a.url = ${url} and a.body is not null and (o.access <> 'licencia' or a.rights = 'licenciado') limit 1`;
+      const owner = ALL_OUTLETS.find((o) => url.includes(new URL(o.url).hostname.replace(/^www\./, "")));
+      if (owner?.access === "licencia" && licenseScope(owner.id) !== "texto_completo") {
+        return { error: "De este medio solo se puede usar el titular." };
+      }
       if (stored) return { url, texto: String(stored.body).slice(0, 9000) };
       const host = new URL(url).hostname.replace(/^www\./, "");
       if (!readableDomains().includes(host)) {

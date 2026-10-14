@@ -34,7 +34,7 @@ export default async function Licencias({ searchParams }: PageProps<"/admin/lice
           return (
             <div key={o.id} className={`rounded-3xl border p-5 ${lic ? "border-accent/50" : "border-line bg-surface"}`}>
               <p className="display text-3xl">{o.name}</p>
-              <p className={`label mt-2 text-[10px] ${lic ? "text-accent" : "text-muted"}`}>{lic ? `Activo · ${lic.scope === "texto_completo" ? "texto completo" : "metadatos"}` : "No activado"}</p>
+              <p className={`label mt-2 text-[10px] ${lic ? "text-accent" : "text-muted"}`}>{lic ? `Activo · ${lic.scope === "texto_completo" ? "texto completo" : "solo titulares"}` : "No activado"}</p>
               {lic && <p className="mt-2 text-sm text-muted">{lic.licensor} · {lic.reference}</p>}
             </div>
           );
@@ -48,18 +48,18 @@ export default async function Licencias({ searchParams }: PageProps<"/admin/lice
         </Field>
         <Field label="Alcance">
           <select name="scope" className={field}>
-            <option value="metadatos">Titulares, entradillas y portada</option>
+            <option value="titulares">Solo titulares, enlace y posición en portada</option>
             <option value="texto_completo">Texto completo</option>
           </select>
         </Field>
-        <Field label="Quién la concede"><input name="licensor" required placeholder="Editor, CEDRO, proveedor licenciado…" className={field} /></Field>
-        <Field label="Referencia"><input name="reference" required placeholder="Nº de contrato, email de autorización…" className={field} /></Field>
+        <Field label="Quién la concede"><input name="licensor" required placeholder="Editor, CEDRO, dictamen jurídico de…" className={field} /></Field>
+        <Field label="Referencia"><input name="reference" required placeholder="Nº de contrato, fecha del dictamen, email…" className={field} /></Field>
         <Field label="Válida desde"><input name="validFrom" type="date" required className={field} /></Field>
         <Field label="Válida hasta (opcional)"><input name="validUntil" type="date" className={field} /></Field>
         <Field label="Documento (enlace, opcional)"><input name="documentUrl" type="url" placeholder="https://…" className={field} /></Field>
         <label className="flex items-start gap-3 self-end text-sm text-muted">
           <input type="checkbox" name="declaration" className="mt-1 h-4 w-4 accent-[var(--accent)]" />
-          Declaro que Ágora dispone de esta licencia o autorización por escrito del editor y que cubre el uso indicado.
+          Declaro que Ágora dispone de licencia o autorización del editor, o de un dictamen jurídico, que avala el uso indicado.
         </label>
         <button className="label h-12 rounded-full bg-accent font-semibold text-bg sm:col-span-2">Registrar licencia y activar</button>
       </form>
@@ -71,7 +71,7 @@ export default async function Licencias({ searchParams }: PageProps<"/admin/lice
             {rows.map((r) => (
               <li key={r.id} className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="font-semibold">{name(r.outlet_id)} <span className="font-normal text-muted">· {r.scope === "texto_completo" ? "texto completo" : "metadatos"}</span></p>
+                  <p className="font-semibold">{name(r.outlet_id)} <span className="font-normal text-muted">· {r.scope === "texto_completo" ? "texto completo" : "solo titulares"}</span></p>
                   <p className="text-sm text-muted">
                     {r.licensor} · {r.reference} · desde {new Date(r.valid_from).toLocaleDateString("es-ES")}{r.valid_until ? ` hasta ${new Date(r.valid_until).toLocaleDateString("es-ES")}` : ""} · activada por {r.activated_by}
                     {r.document_url && <> · <a href={r.document_url} target="_blank" rel="noreferrer" className="underline">documento</a></>}

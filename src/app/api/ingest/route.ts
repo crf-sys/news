@@ -2,7 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { sql, syncCatalog } from "@/lib/db";
 import { ALL_OUTLETS } from "@/lib/sources";
-import { loadLicenses } from "@/lib/licenses";
+import { licenseScope, loadLicenses } from "@/lib/licenses";
 
 export const maxDuration = 300;
 
@@ -84,6 +84,8 @@ export async function POST(req: Request) {
       warnings.push({ index, url: it.url, warning: `${o.name} se reserva la minería de textos y no consta licencia validada: guardada como sin_licencia` });
       rights = "sin_licencia";
     }
+    // Medios con reserva sin licencia de texto completo: solo titular, enlace y posición (sin entradilla ni texto).
+    if (o.access === "licencia" && licenseScope(o.id) !== "texto_completo") { it.subtitle = undefined; it.text = undefined; }
     validItems.push({ outletId: o.id, item: it, rights });
   }
 

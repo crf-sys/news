@@ -11,7 +11,7 @@ export async function activateLicense(formData: FormData) {
   const editor = await requireAdmin();
   const f = (k: string) => String(formData.get(k) ?? "").trim();
   const outlet = ALL_OUTLETS.find((o) => o.id === f("outletId") && o.access === "licencia");
-  if (!outlet || !f("licensor") || f("reference").length < 4 || !["metadatos", "texto_completo"].includes(f("scope")) || !f("validFrom")) {
+  if (!outlet || !f("licensor") || f("reference").length < 4 || !["titulares", "texto_completo"].includes(f("scope")) || !f("validFrom")) {
     redirect("/admin/licencias?error=campos");
   }
   if (formData.get("declaration") !== "on") redirect("/admin/licencias?error=declaracion");

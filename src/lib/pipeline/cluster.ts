@@ -1,6 +1,7 @@
 import { cosineSimilarity, embedMany } from "ai";
 import { MODELS } from "../ai/models";
 import { sql } from "../db";
+import { licensedOutletIds } from "../licenses";
 
 // ETAPA 2 — Agrupar en "temas" las piezas de distintos medios sobre el mismo hecho.
 // Embeddings de titular + extracto y agrupación voraz contra el centroide del cluster.
@@ -32,7 +33,7 @@ export async function loadPool(region: string, hours = 36): Promise<PoolArticle[
     from articles a join outlets o on o.id = a.outlet_id
     where o.region = ${region} and a.published_at > now() - make_interval(hours => ${hours})
       -- Medios con reserva de minería: solo entran si la pieza llega licenciada.
-      and (o.access <> 'licencia' or a.rights = 'licenciado')
+      and (o.access <> 'licencia' or a.rights = 'licenciado' or a.outlet_id = any(${[...licensedOutletIds()]}))
     order by a.published_at desc`) as PoolArticle[];
 }
 

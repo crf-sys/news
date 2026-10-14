@@ -1,6 +1,6 @@
 import type { Article, Outlet } from "../types";
 import { ALL_OUTLETS } from "../sources";
-import { licensedOutletIds, loadLicenses } from "../licenses";
+import { licenseScope, licensedOutletIds, loadLicenses } from "../licenses";
 
 // ETAPA 1 — Ingesta. Un único motor para todos los medios; lo que cambia por medio es su
 // configuración en sources.ts. Solo se leen automáticamente los medios con access "auto" o
@@ -51,7 +51,9 @@ async function readFeed(outlet: Outlet, feed: string): Promise<{ articles: Artic
     const res = await fetch(feed, { headers: { "User-Agent": USER_AGENT }, signal: AbortSignal.timeout(20_000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const xml = await decode(res);
-    const articles = parseRss(xml).map((it) => toArticle(outlet, feed, it));
+    const headlineOnly = outlet.access === "licencia" && licenseScope(outlet.id) !== "texto_completo";
+    // Medios activados solo para titulares: no se guarda la entradilla.
+    const articles = parseRss(xml).map((it) => toArticle(outlet, feed, headlineOnly ? { ...it, description: "" } : it));
     return { articles, report: { outletId: outlet.id, feed, ok: true, items: articles.length } };
   } catch (e) {
     return { articles: [], report: { outletId: outlet.id, feed, ok: false, items: 0, error: String(e) } };

@@ -5,6 +5,7 @@ import { COLUMNISTS, outlet, LEAN_LABEL } from "../sources";
 import type { Story } from "../types";
 import type { Cluster } from "./cluster";
 import { verificationTools } from "./tools";
+import { licenseScope } from "../licenses";
 
 // ETAPA 4 — Informe objetivo de cada tema. Un agente con herramientas lee las piezas, las compara,
 // y cuando hay discrepancias o cifras dudosas acude a fuentes primarias, verificadores y hemeroteca.
@@ -15,6 +16,7 @@ Eres el analista de Ágora, un medio cuyo único compromiso es la objetividad ve
 
 CÓMO TRABAJAS
 1. Lee todas las piezas del tema. Si un medio permite la lectura completa (herramienta leer_articulo), lee al menos las 2 piezas más completas para entender bien el hecho; del resto usa titular y extracto.
+   Las piezas marcadas "SOLO TITULAR": usa únicamente su titular. Sirven para saber que ese medio cubre el tema y para describir su enfoque a partir de cómo titula (qué destaca, qué verbo y qué adjetivos usa). No les atribuyas datos que el titular no diga, no las uses como fuente de hechos y no intentes leerlas.
 2. Extrae las afirmaciones relevantes y compáralas entre medios. Detecta: cifras distintas, hechos que solo cuenta un medio, omisiones, y adjetivación o lenguaje cargado.
 3. Ante CUALQUIER duda (cifras que no cuadran, una afirmación sostenida por un solo medio, datos oficiales, votaciones, normas, resoluciones judiciales, encuestas) acude a las fuentes:
    - buscar_fuente_primaria (BOE, Congreso, INE, CIS, Poder Judicial, Banco de España, AIReF, UE…) para datos y documentos oficiales;
@@ -80,7 +82,9 @@ export interface Usage { input: number; output: number; steps: number }
 export async function analyzeCluster(cluster: Cluster, rank: number, model: string): Promise<{ story: Story; usage: Usage }> {
   const pieces = cluster.articles.slice(0, 20).map((a) => {
     const o = outlet(a.outlet_id);
-    return `- [${a.kind === "opinion" ? "OPINIÓN" : "NOTICIA"}] medio=${o.id} (${o.name}, línea ${o.lean === undefined ? "sin calibrar" : LEAN_LABEL[o.lean]}; lectura completa: ${o.access === "auto" || o.access === "licenciado" ? "sí" : "no"})\n  ${a.title}\n  ${a.excerpt ?? ""}\n  ${a.url}`;
+    const headlineOnly = o.access === "licencia" && licenseScope(o.id) === "titulares";
+    const full = o.access === "auto" || o.access === "licenciado" || licenseScope(o.id) === "texto_completo";
+    return `- [${a.kind === "opinion" ? "OPINIÓN" : "NOTICIA"}] medio=${o.id} (${o.name}, línea ${o.lean === undefined ? "sin calibrar" : LEAN_LABEL[o.lean]}; ${headlineOnly ? "SOLO TITULAR" : `lectura completa: ${full ? "sí" : "no"}`})\n  ${a.title}\n  ${headlineOnly ? "" : (a.excerpt ?? "")}\n  ${a.url}`;
   });
 
   // Un reintento si el modelo devuelve un objeto que no cumple el esquema.

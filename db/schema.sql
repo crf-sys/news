@@ -187,3 +187,8 @@ create table if not exists outlet_licenses (
   revoked_by text, revoked_at timestamptz
 );
 create index if not exists outlet_licenses_active_idx on outlet_licenses (outlet_id) where revoked_at is null;
+
+-- Alcance "titulares" (antes "metadatos"): solo titular, enlace y posición en portada.
+alter table outlet_licenses drop constraint if exists outlet_licenses_scope_check;
+update outlet_licenses set scope = 'titulares' where scope = 'metadatos';
+alter table outlet_licenses add constraint outlet_licenses_scope_check check (scope in ('titulares', 'texto_completo'));
