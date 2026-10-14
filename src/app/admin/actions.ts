@@ -2,10 +2,12 @@
 
 import { redirect } from "next/navigation";
 import { sql } from "@/lib/db";
+import { requireAdmin } from "@/lib/admin";
 
 // Alta de una voz. Queda en estado "calibrando" hasta que el backfill (F3) analice ≥ 30 textos.
 // TODO: auth (solo editores) y lanzar el backfill de 12 meses.
 export async function createVoice(formData: FormData) {
+  const editor = await requireAdmin();
   const f = (k: string) => String(formData.get(k) ?? "").trim();
   if (!f("name") || !f("reason")) redirect("/admin?error=1");
 
@@ -18,6 +20,6 @@ export async function createVoice(formData: FormData) {
   for (const [kind, value] of channels) {
     await sql`insert into voice_channels (voice_id, kind, value) values (${id}, ${kind}, ${value})`;
   }
-  await sql`insert into audit_log (actor, entity, entity_id, change, reason) values ('editor', 'voice', ${id}, ${JSON.stringify({ alta: true })}, ${f("reason")})`;
+  await sql`insert into audit_log (actor, entity, entity_id, change, reason) values (${editor}, 'voice', ${id}, ${JSON.stringify({ alta: true })}, ${f("reason")})`;
   redirect("/admin?ok=1");
 }

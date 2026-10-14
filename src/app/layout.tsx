@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Inter_Tight, JetBrains_Mono } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import { Header } from "@/components/Header";
 import "./globals.css";
 
@@ -18,11 +19,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="es" className={`${serif.variable} ${sans.variable} ${mono.variable} antialiased`}>
       <body className="min-h-dvh font-sans">
+        <ClerkProvider>
         <Header />
         {children}
         <footer className="mx-auto max-w-6xl px-4 py-16 text-muted label border-t border-line mt-24">
           Ágora · Cada afirmación enlaza a sus fuentes · <a href="/metodologia" className="underline">Metodología</a>
         </footer>
+        </ClerkProvider>
       </body>
     </html>
   );
