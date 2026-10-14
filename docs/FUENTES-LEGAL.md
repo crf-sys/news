@@ -29,3 +29,20 @@ Clave: el art. 67.3 del RDL 24/2021 (que transpone el art. 4.3 de la Directiva U
 ## Pendiente
 - Solicitar licencia/permiso a los 7 medios con reserva (ver `docs/EMAILS.md`) y consultar a CEDRO.
 - Repetir esta revisión cada trimestre: las condiciones cambian.
+
+## Ampliación 14/10/2026 — radios, alternativos y medios de columnistas
+
+| Medio | Reserva minería / IA | robots.txt IA | Modo |
+|---|---|---|---|
+| Cadena SER (PRISA) | **Sí**, expresa (art. 67.3) + frente a IA | Bloquea ClaudeBot, CCBot, PerplexityBot | Licencia |
+| Onda Cero (Atresmedia) | **Sí**, expresa (minería + entrenamiento de IA) | — | Licencia |
+| COPE | No detectada en aviso legal | Bloquea **todos** los bots de IA | Licencia |
+| RAC1 (Godó) | **Sí**, expresa (art. 67.3 + IA) | Bloquea GPTBot, ClaudeBot… | Licencia |
+| Catalunya Ràdio (3Cat) | **Sí**, expresa (ver revisión autonómica) | — | Licencia |
+| RNE (RTVE) | No detectada | — | **Automático** |
+| esRadio / Libertad Digital | Aviso legal no localizado desde la home | Sin bloqueos | Pendiente de revisión manual |
+| Público | No detectada | Sin bloqueos | **Automático** cuando se localice un feed válido (no hay RSS público; valorar sitemap de noticias) |
+| infoLibre | No detectada | Bloquea los principales bots de IA | Licencia |
+| El Independiente | No detectada | Sin bloqueos | **Automático** (feed: /feed/) |
+
+Consecuencia para el "Especial Radios": de las grandes, solo RNE puede analizarse automáticamente hoy. SER, Onda Cero, COPE, RAC1 y Catalunya Ràdio requieren licencia o lectura humana desde el panel de edición.
