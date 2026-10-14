@@ -183,7 +183,7 @@ export async function deliverBatch(batch: IngestBatch) {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "User-Agent": USER_AGENT },
     body: JSON.stringify(batch),
-    signal: AbortSignal.timeout(30_000),
+    signal: AbortSignal.timeout(240_000),
   });
   const result = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
   if (response.status >= 500 || response.status === 429) throw new Error(`Fallo temporal de entrega: HTTP ${response.status}`);

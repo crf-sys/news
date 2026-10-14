@@ -3,6 +3,8 @@ import { z } from "zod";
 import { sql, syncCatalog } from "@/lib/db";
 import { ALL_OUTLETS } from "@/lib/sources";
 
+export const maxDuration = 300;
+
 // API de ingesta v1.1 (contrato: docs/API-INGESTA.md).
 // - Lotes idempotentes por batch_id: reenviar el mismo lote devuelve el mismo resultado sin duplicar.
 // - Se guarda copia bruta de cada lote (sin el texto completo) para no perder nada.
@@ -69,6 +71,7 @@ export async function POST(req: Request) {
   const warnings: { index: number; url: string; warning: string }[] = [];
   let saved = 0;
   let savedSnapshots = 0;
+  const validItems: Array<{ outletId: string; item: z.infer<typeof Item>; rights: z.infer<typeof Item>["rights"] }> = [];
 
   for (const [index, raw] of items.entries()) {
     const r = Item.safeParse(raw);
@@ -81,16 +84,35 @@ export async function POST(req: Request) {
       warnings.push({ index, url: it.url, warning: `${o.name} se reserva la minería de textos y no consta licencia validada: guardada como sin_licencia` });
       rights = "sin_licencia";
     }
-    const excerpt = (it.subtitle ?? it.text ?? "").replace(/\s+/g, " ").slice(0, 280) || null;
-    await sql`
-      insert into articles (outlet_id, url, title, excerpt, kind, via, published_at, body, rights, section, author, provider)
-      values (${o.id}, ${it.url}, ${it.title}, ${excerpt}, ${it.kind === "editorial" ? "opinion" : it.kind}, 'api', ${it.published_at},
-              ${it.text ?? null}, ${rights}, ${it.section ?? null}, ${it.author ?? null}, ${provider})
-      on conflict (outlet_id, url) do update set
-        title = excluded.title, excerpt = coalesce(excluded.excerpt, articles.excerpt), body = coalesce(excluded.body, articles.body),
-        rights = excluded.rights, section = coalesce(excluded.section, articles.section), author = coalesce(excluded.author, articles.author),
-        provider = excluded.provider`;
-    saved++;
+    validItems.push({ outletId: o.id, item: it, rights });
+  }
+
+  // Escritura agrupada: evita cientos de viajes a Neon y mantiene los lotes de 500 bajo el timeout.
+  for (let start = 0; start < validItems.length; start += 100) {
+    const chunk = validItems.slice(start, start + 100);
+    await sql.query(
+      `insert into articles (outlet_id, url, title, excerpt, kind, via, published_at, body, rights, section, author, provider)
+       select * from unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[], $6::text[], $7::timestamptz[], $8::text[], $9::text[], $10::text[], $11::text[], $12::text[])
+       on conflict (outlet_id, url) do update set
+         title = excluded.title, excerpt = coalesce(excluded.excerpt, articles.excerpt), body = coalesce(excluded.body, articles.body),
+         rights = excluded.rights, section = coalesce(excluded.section, articles.section), author = coalesce(excluded.author, articles.author),
+         provider = excluded.provider`,
+      [
+        chunk.map((entry) => entry.outletId),
+        chunk.map((entry) => entry.item.url),
+        chunk.map((entry) => entry.item.title),
+        chunk.map((entry) => (entry.item.subtitle ?? entry.item.text ?? "").replace(/\s+/g, " ").slice(0, 280) || null),
+        chunk.map((entry) => entry.item.kind === "editorial" ? "opinion" : entry.item.kind),
+        chunk.map(() => "api"),
+        chunk.map((entry) => entry.item.published_at),
+        chunk.map((entry) => entry.item.text ?? null),
+        chunk.map((entry) => entry.rights),
+        chunk.map((entry) => entry.item.section ?? null),
+        chunk.map((entry) => entry.item.author ?? null),
+        chunk.map(() => provider),
+      ],
+    );
+    saved += chunk.length;
   }
 
   for (const [index, raw] of snapshots.entries()) {
@@ -104,12 +126,18 @@ export async function POST(req: Request) {
       values (${o.id}, ${provider}, ${batch_id}, ${sn.captured_at}, ${sn.screenshot_url ?? null})
       on conflict (outlet_id, provider, captured_at) do update set screenshot_url = coalesce(excluded.screenshot_url, front_page_snapshots.screenshot_url)
       returning id`;
-    for (const p of sn.positions) {
-      await sql`insert into front_page_snapshot_items (snapshot_id, position, url, title) values (${row.id}, ${p.position}, ${p.url}, ${p.title ?? null})
-                on conflict (snapshot_id, position) do update set url = excluded.url, title = excluded.title`;
-      // La mejor posición en portada de cada pieza alimenta el ranking.
-      await sql`update articles set front_page_rank = least(coalesce(front_page_rank, 999), ${p.position}) where outlet_id = ${o.id} and url = ${p.url}`;
-    }
+    await sql.query(
+      `insert into front_page_snapshot_items (snapshot_id, position, url, title)
+       select $1::uuid, * from unnest($2::smallint[], $3::text[], $4::text[])
+       on conflict (snapshot_id, position) do update set url = excluded.url, title = excluded.title`,
+      [row.id, sn.positions.map((p) => p.position), sn.positions.map((p) => p.url), sn.positions.map((p) => p.title ?? null)],
+    );
+    await sql.query(
+      `update articles a set front_page_rank = least(coalesce(a.front_page_rank, 999), p.position)
+       from unnest($1::text[], $2::smallint[]) as p(url, position)
+       where a.outlet_id = $3 and a.url = p.url`,
+      [sn.positions.map((p) => p.url), sn.positions.map((p) => p.position), o.id],
+    );
     savedSnapshots++;
   }
 
