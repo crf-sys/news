@@ -17,6 +17,8 @@ export interface Outlet {
   name: string;
   url: string;
   rss: string[];
+  /** Portada pública que se usa para medir posición. Por defecto se usa `url`. */
+  frontPageUrl?: string;
   access: OutletAccess;
   /** "es" = nacional; si no, id de la comunidad autónoma (ver regions.ts). */
   region?: string;
@@ -59,6 +61,8 @@ export interface Article {
   publishedAt: string;
   via: "rss" | "email" | "web" | "api";
   kind: "noticia" | "opinion" | "analisis" | "entrevista";
+  author?: string;
+  section?: string;
   /** Posición en portada del medio (1 = apertura). Señal clave para el ranking. */
   frontPageRank?: number;
 }

@@ -25,6 +25,10 @@ Clave: el art. 67.3 del RDL 24/2021 (que transpone el art. 4.3 de la Directiva U
 - Medios con reserva: solo lectura humana; el editor escribe un resumen propio (casilla de redacción propia obligatoria).
 - No se automatiza el acceso a zonas de suscriptor salvo licencia o permiso por escrito que lo cubra.
 - No se eluden muros de pago, CAPTCHAs ni sistemas antibots.
+- Tras revisión jurídica interna, `METADATA_ONLY_OUTLETS` permite recoger feeds públicos de un
+  medio sin presentar esa autorización como licencia. Las piezas entran como `sin_licencia` y no
+  pasan al análisis automático. El País (HTTP 403 al bot identificado) y El Confidencial
+  (restricción de rastreo) permanecen bloqueados hasta disponer de un canal autorizado.
 
 ## Pendiente
 - Solicitar licencia/permiso a los 7 medios con reserva (ver `docs/EMAILS.md`) y consultar a CEDRO.

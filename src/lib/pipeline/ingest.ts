@@ -12,7 +12,11 @@ import { ALL_OUTLETS } from "../sources";
 export const USER_AGENT = "Mozilla/5.0 (compatible; AgoraBot/0.1; +https://agora10.com/metodologia)";
 const EXCERPT_MAX = 280;
 
-export const readableOutlets = () => ALL_OUTLETS.filter((o) => o.access === "auto" || o.access === "licenciado");
+export const readableOutlets = () => {
+  const licensed = new Set((process.env.LICENSED_OUTLETS ?? "").split(",").map((id) => id.trim()).filter(Boolean));
+  const metadataOnly = new Set((process.env.METADATA_ONLY_OUTLETS ?? "").split(",").map((id) => id.trim()).filter(Boolean));
+  return ALL_OUTLETS.filter((o) => o.access === "auto" || o.access === "licenciado" || licensed.has(o.id) || metadataOnly.has(o.id));
+};
 
 export interface IngestReport {
   outletId: string;
@@ -99,7 +103,8 @@ function clean(s: string): string {
 function toArticle(outlet: Outlet, feed: string, it: RssItem): Article {
   const url = it.link.split("#")[0];
   const date = new Date(it.pubDate);
-  const excerpt = it.description.length > EXCERPT_MAX ? it.description.slice(0, EXCERPT_MAX).replace(/\s\S*$/, "") + "…" : it.description;
+  const shortened = it.description.slice(0, EXCERPT_MAX);
+  const excerpt = it.description.length > EXCERPT_MAX ? `${shortened.slice(0, shortened.lastIndexOf(" ") > 0 ? shortened.lastIndexOf(" ") : EXCERPT_MAX)}…` : it.description;
   return {
     id: `${outlet.id}:${url}`,
     outletId: outlet.id,
@@ -109,6 +114,8 @@ function toArticle(outlet: Outlet, feed: string, it: RssItem): Article {
     publishedAt: isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString(),
     via: "rss",
     kind: /opini/i.test(feed) || it.categories.some((c) => /opini|tribuna|columna/i.test(c)) ? "opinion" : "noticia",
+    author: it.creator,
+    section: it.categories[0],
   };
 }
 

@@ -26,6 +26,19 @@
 Semanal      Fichas      recálculo de ejes ideológicos por voz (histórico + evidencias)
 ```
 
+### Recolector general
+
+`src/lib/collector.ts` recorre todo `ALL_OUTLETS` y genera lotes del contrato de
+`docs/API-INGESTA.md`. Los medios `auto` se activan inmediatamente; los medios `licencia`
+solo se activan con texto cuando su id aparece en `LICENSED_OUTLETS`. Una fuente incluida en
+`METADATA_ONLY_OUTLETS` puede aportar únicamente metadatos públicos tras una revisión jurídica;
+se entrega siempre como `rights: "sin_licencia"` y Ágora la excluye del análisis automático.
+Ninguna de las dos listas autoriza a eludir `robots.txt`, paywalls, CAPTCHAs o bloqueos técnicos.
+Cada ejecución produce además
+un informe por medio (`collected`, `blocked_license`, `missing_feed` o `failed`) para que una
+ampliación nunca falle de forma silenciosa. Las capturas de portada guardan el orden de los
+enlaces; `screenshot_url` queda vacío mientras no se configure almacenamiento de imágenes.
+
 Código: `src/lib/pipeline/*` (una etapa por archivo), endpoints en `src/app/api/cron/*`.
 
 Los crons se activarán en F1 en `vercel.json`. En plan Hobby solo se permite 1 ejecución diaria por cron:

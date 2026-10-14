@@ -64,6 +64,8 @@ Una captura por medio cada 2–4 h. Las posiciones se relacionan con las piezas 
 - Para los medios que se reservan la minería de textos (El País, El Mundo, ABC, La Vanguardia, 20minutos, El Confidencial y La Razón, además de los autonómicos indicados en `docs/FUENTES-LEGAL.md`), `licenciado` **solo se acepta si ese medio figura en la lista de licencias validadas por Ágora**. Esa lista se actualiza tras revisar la documentación de la licencia del proveedor.
 - Si el medio no está validado, la pieza **se guarda como `sin_licencia`, queda fuera del análisis automático** y la respuesta lo indica en `warnings`.
 - **Fase actual:** no se exige documentación de licencias. El piloto usa solo medios que no se reservan la minería de textos, así que pueden enviarse con `rights: "publico"`. La matriz de licencias por medio se pedirá cuando se quiera ampliar a los medios con reserva.
+- Una aprobación jurídica interna para recoger metadatos públicos no se presenta como licencia:
+  esas piezas se envían con `rights: "sin_licencia"`, se guardan y no entran en el análisis automático.
 
 ## 4. Volumen y calendario
 - Unos 30 medios, 3.000–8.000 piezas al día y capturas de portada cada 2–4 h.

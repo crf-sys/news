@@ -1,8 +1,10 @@
 {
   "crons": [
     { "path": "/api/cron/ingest?turno=madrugada", "schedule": "0 3 * * *" },
+    { "path": "/api/cron/ingest?turno=manana", "schedule": "0 7 * * *" },
     { "path": "/api/cron/ingest?turno=mediodia", "schedule": "0 11 * * *" },
-    { "path": "/api/cron/ingest?turno=tarde", "schedule": "0 17 * * *" },
+    { "path": "/api/cron/ingest?turno=tarde", "schedule": "0 15 * * *" },
+    { "path": "/api/cron/ingest?turno=noche", "schedule": "0 19 * * *" },
     { "path": "/api/cron/edition?region=es", "schedule": "0 4 * * *" },
     { "path": "/api/cron/edition?region=andalucia", "schedule": "5 4 * * *" },
     { "path": "/api/cron/edition?region=cataluna", "schedule": "10 4 * * *" },
