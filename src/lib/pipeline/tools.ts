@@ -58,6 +58,11 @@ export const verificationTools = {
       "para el resto, trabaja con titular y extracto. Úsalo para entender, nunca para copiar frases al informe.",
     inputSchema: z.object({ url: z.string().url() }),
     execute: async ({ url }) => {
+      // Si la pieza llegó con texto completo por la API (y con derechos), se usa ese texto.
+      const [stored] = await sql`
+        select a.body from articles a join outlets o on o.id = a.outlet_id
+        where a.url = ${url} and a.body is not null and (o.access <> 'licencia' or a.rights = 'licenciado') limit 1`;
+      if (stored) return { url, texto: String(stored.body).slice(0, 9000) };
       const host = new URL(url).hostname.replace(/^www\./, "");
       if (!readableDomains().includes(host)) {
         return { error: "Este medio no permite la lectura automatizada. Usa solo titular y extracto." };

@@ -136,3 +136,9 @@ create table if not exists front_page_extra (
   id uuid primary key default gen_random_uuid(), day date not null, outlet_id text not null references outlets(id),
   headline text not null, url text, position smallint, editor text not null, created_at timestamptz default now()
 );
+
+-- Entrada por API externa: texto completo opcional y declaración de derechos de cada pieza.
+alter table articles add column if not exists body text;
+alter table articles add column if not exists rights text;
+alter table articles add column if not exists section text;
+alter table articles add column if not exists author text;

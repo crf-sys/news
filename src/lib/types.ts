@@ -57,7 +57,7 @@ export interface Article {
   title: string;
   excerpt: string;
   publishedAt: string;
-  via: "rss" | "email" | "web";
+  via: "rss" | "email" | "web" | "api";
   kind: "noticia" | "opinion" | "analisis" | "entrevista";
   /** Posición en portada del medio (1 = apertura). Señal clave para el ranking. */
   frontPageRank?: number;

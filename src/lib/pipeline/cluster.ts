@@ -31,6 +31,8 @@ export async function loadPool(region: string, hours = 36): Promise<PoolArticle[
     select a.id, a.outlet_id, a.url, a.title, a.excerpt, a.kind, a.published_at
     from articles a join outlets o on o.id = a.outlet_id
     where o.region = ${region} and a.published_at > now() - make_interval(hours => ${hours})
+      -- Medios con reserva de minería: solo entran si la pieza llega licenciada.
+      and (o.access <> 'licencia' or a.rights = 'licenciado')
     order by a.published_at desc`) as PoolArticle[];
 }
 
