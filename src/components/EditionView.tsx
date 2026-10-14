@@ -59,9 +59,9 @@ export async function EditionView({ region, mode }: { region: string; mode: "por
         </section>
       ) : mode === "portada" ? (
         <>
-          <DayMap stories={ed.stories} />
-          <div className="h-4" />
           <Portada stories={ed.stories} />
+          <div className="h-12" />
+          <DayMap stories={ed.stories} />
         </>
       ) : (
         <Informe stories={ed.stories} model={ed.model} />
