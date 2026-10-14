@@ -27,16 +27,22 @@ CÓMO TRABAJAS
 
 REGLAS DE CLASIFICACIÓN (estrictas)
 - "hecho": lo sostienen al menos 2 medios independientes y no lo contradice ninguno, o está confirmado en fuente primaria.
-- "disputado": hay medios o fuentes que lo contradicen, o las cifras no coinciden. Explica la discrepancia (unos dicen…, otros…).
+- "disputado": hay medios o fuentes que lo contradicen, o las cifras no coinciden. En "text" resume en qué se discrepa
+  (p. ej. "Seguimiento de la huelga") y en "versions" pon cada versión por separado, redactada sin nombrar medios
+  ("fue del 44,6 %", "llegó al 70 %"), con las URL exactas de las piezas que la sostienen.
 - "opinion": es una valoración, predicción, calificativo o interpretación, aunque la publique un medio en una noticia.
-- Una afirmación de un solo medio sin confirmar NO es "hecho": márcala "disputado" con la nota "solo lo publica un medio" o deja verificación "no_verificable".
+- "sin_contrastar": lo publica un solo medio, nadie lo contradice y no has podido confirmarlo en fuente primaria. No es "hecho" ni "disputado".
+- "disputado" exige al menos DOS versiones distintas en "versions". Si solo hay una versión, es "sin_contrastar".
 
 ESCRITURA
-- Titular y entradilla propios, neutros, descriptivos, sin adjetivos valorativos ni verbos de juicio ("arremete", "carga contra", "se hunde"). Nunca copies frases de los medios.
+- Titular y entradilla propios: redáctalos tú a partir de lo que coincide entre VARIAS piezas, explicando qué ha pasado.
+  Nunca reproduzcas ni parafrasees el titular de un solo medio. Neutros y descriptivos, sin adjetivos valorativos
+  ni verbos de juicio ("arremete", "carga contra", "se hunde"). Nunca copies frases de los medios.
 - Fuentes oficiales: atribúyelas en el texto ("según el INE", "según el BOE").
 - Medios: NO los nombres en el texto de las afirmaciones ni de las omisiones. Expón la discrepancia de forma general
   ("Unos medios cifran el seguimiento en el 44 %; otros, en el 70 %", "Algunos medios no mencionan…").
-  La atribución va en outletIds (ids de medio exactos): el lector la ve debajo, con el enlace a cada noticia.
+  La atribución va en "sources": id de medio exacto + URL exacta de su pieza (de la lista que se te da). El lector ve
+  junto a cada afirmación o versión el nombre del medio enlazado a su noticia, así que no hace falta nombrarlo.
 - Enfoques: describe en qué pone el foco cada bloque (izquierda/centro/derecha según la línea editorial del medio) sin juzgar cuál es correcto. Si un bloque no ha cubierto el tema, no lo inventes.
 - Lenguaje cargado: señala términos valorativos usados por un medio y su alternativa neutra.
 - Omisiones: datos relevantes que un medio no menciona y otros sí.
@@ -51,8 +57,12 @@ const schema = z.object({
   section: z.enum(["politica", "economia", "internacional", "sociedad", "tribunales"]),
   claims: z.array(z.object({
     text: z.string(),
-    status: z.enum(["hecho", "disputado", "opinion"]),
-    outletIds: z.array(z.string()),
+    status: z.enum(["hecho", "disputado", "sin_contrastar", "opinion"]),
+    sources: z.array(z.object({ outletId: z.string(), url: z.string() })).describe("Pieza de cada medio que lo sostiene"),
+    versions: z.array(z.object({
+      text: z.string().describe("Una versión, sin nombrar medios"),
+      sources: z.array(z.object({ outletId: z.string(), url: z.string() })),
+    })).optional().describe("Solo en afirmaciones disputadas"),
     verification: z.object({
       result: z.enum(["confirmado", "contradicho", "no_verificable"]),
       sourceName: z.string().optional(),
@@ -104,6 +114,10 @@ export async function analyzeCluster(cluster: Cluster, rank: number, model: stri
   const usage = { input: result.totalUsage.inputTokens ?? 0, output: result.totalUsage.outputTokens ?? 0, steps: result.steps.length };
 
   const valid = new Set(cluster.outlets);
+  // Solo se aceptan enlaces a piezas reales del tema (el modelo no puede inventar URL ni medios).
+  const urls = new Map(cluster.articles.map((a) => [a.url, a.outlet_id]));
+  const linked = (xs: { outletId: string; url: string }[]) =>
+    xs.filter((x) => urls.get(x.url) === x.outletId).filter((x, i, arr) => arr.findIndex((y) => y.url === x.url) === i);
   const known = (ids: string[]) => ids.filter((id) => valid.has(id));
   const spectrum = { izquierda: 0, centro: 0, derecha: 0 };
   for (const id of cluster.outlets) {
@@ -118,7 +132,14 @@ export async function analyzeCluster(cluster: Cluster, rank: number, model: stri
     headline: output.headline,
     dek: output.dek,
     coverage: cluster.outlets.map((outletId) => ({ outletId })),
-    claims: output.claims.map((c) => ({ ...c, outletIds: known(c.outletIds) })),
+    claims: output.claims.map((c) => {
+      const sources = linked(c.sources);
+      const versions = c.versions?.map((v) => ({ text: v.text, sources: linked(v.sources) })).filter((v) => v.text);
+      const outletIds = [...new Set([...sources, ...(versions ?? []).flatMap((v) => v.sources)].map((x) => x.outletId))];
+      // Una "disputa" con una sola versión no es una disputa: es una afirmación sin contrastar.
+      const status = c.status === "disputado" && (versions?.length ?? 0) < 2 ? "sin_contrastar" : c.status;
+      return { text: c.text, status, verification: c.verification, outletIds, sources, versions: status === "disputado" ? versions : undefined };
+    }),
     framings: output.framings.map((f) => ({ ...f, outletIds: known(f.outletIds) })).filter((f) => f.outletIds.length),
     opinions: output.opinions.map((o) => ({
       ...o,

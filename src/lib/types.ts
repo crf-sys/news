@@ -67,13 +67,17 @@ export interface Article {
   frontPageRank?: number;
 }
 
-export type ClaimStatus = "hecho" | "disputado" | "opinion";
+export type ClaimStatus = "hecho" | "disputado" | "sin_contrastar" | "opinion";
 
 export interface Claim {
   text: string;
   status: ClaimStatus;
   /** Medios que lo sostienen (para "hecho": nº de fuentes independientes). */
   outletIds: string[];
+  /** Enlace a la pieza concreta de cada medio: el chip del medio enlaza a su noticia. */
+  sources?: { outletId: string; url: string }[];
+  /** En afirmaciones disputadas: cada versión ("unos dicen… / otros dicen…") con sus enlaces. */
+  versions?: { text: string; sources: { outletId: string; url: string }[] }[];
   /** Comprobación contra fuente primaria o hemeroteca, cuando el agente la ha hecho. */
   verification?: {
     result: "confirmado" | "contradicho" | "no_verificable";

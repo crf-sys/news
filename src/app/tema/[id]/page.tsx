@@ -6,6 +6,7 @@ import { ACTIVE_REGIONS, region as regionOf } from "@/lib/regions";
 import { outlet } from "@/lib/sources";
 import { OtherViews } from "@/components/OtherViews";
 import { ClaimBadge } from "@/components/ClaimBadge";
+import { SourceChips, Versions } from "@/components/SourceChips";
 import { SpectrumStrip } from "@/components/Coverage";
 import { ConfidenceDot, CoverageCount } from "@/components/ObjectivityBadge";
 import type { ClaimStatus, Story } from "@/lib/types";
@@ -51,8 +52,8 @@ async function Tema({ params }: { params: PageProps<"/tema/[id]">["params"] }) {
         <p className="mt-6 text-xl text-muted">{s.dek}</p>
         {o && <div className="mt-6"><CoverageCount outlets={o.outlets} total={o.outletsTotal} big /></div>}
 
-        <div className="mt-8 grid grid-cols-3 gap-2 sm:gap-4">
-          {(["hecho", "disputado", "opinion"] as const).map((st) => (
+        <div className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
+          {(["hecho", "disputado", "sin_contrastar", "opinion"] as const).map((st) => (
             <a key={st} href="#hechos" className="rounded-2xl border border-line bg-surface p-4 sm:p-6">
               <div className="numeral text-5xl sm:text-7xl">{count(st)}</div>
               <div className="mt-3"><ClaimBadge status={st} /></div>
@@ -111,10 +112,10 @@ async function Tema({ params }: { params: PageProps<"/tema/[id]">["params"] }) {
                   {c.verification && <Verification v={c.verification} />}
                 </div>
                 <p className={`mt-3 text-xl leading-snug ${c.status === "opinion" ? "italic text-muted" : ""}`}>{c.text}</p>
-                {c.outletIds.length > 0 && (
-                  <p className="label mt-3 text-[10px] text-muted">
-                    {c.outletIds.length} {c.outletIds.length === 1 ? "medio" : "medios"} · {c.outletIds.map(name).join(" · ")}
-                  </p>
+                {c.versions?.length ? (
+                  <Versions claim={c} />
+                ) : (
+                  c.outletIds.length > 0 && <div className="mt-3"><SourceChips sources={c.sources} outletIds={c.outletIds} /></div>
                 )}
                 {c.verification?.note && <p className="mt-2 text-sm text-muted">{c.verification.note}</p>}
               </li>

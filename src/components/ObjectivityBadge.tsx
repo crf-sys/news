@@ -7,6 +7,7 @@ export function ObjectivityStrip({ story }: { story: Story }) {
   const facts = story.claims.filter((c) => c.status === "hecho").length;
   const disputed = story.claims.filter((c) => c.status === "disputado").length;
   const opinions = story.claims.filter((c) => c.status === "opinion").length;
+  const unconfirmed = story.claims.filter((c) => c.status === "sin_contrastar").length;
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
       <CoverageCount outlets={o.outlets} total={o.outletsTotal} />
@@ -14,6 +15,7 @@ export function ObjectivityStrip({ story }: { story: Story }) {
         <i className="h-2 w-2 rounded-full bg-fact" />{facts} hechos
       </span>
       {disputed > 0 && <span className="label flex items-center gap-1 text-[10px]"><i className="h-2 w-2 rounded-full bg-disputed" />{disputed} en disputa</span>}
+      {unconfirmed > 0 && <span className="label flex items-center gap-1 text-[10px] text-muted"><i className="h-2 w-2 rounded-full border border-muted" />{unconfirmed} sin contrastar</span>}
       {opinions > 0 && <span className="label flex items-center gap-1 text-[10px]"><i className="h-2 w-2 rounded-full border border-opinion" />{opinions} opiniones</span>}
       {o.verified > 0 && <span className="label text-[10px] text-accent">✓ {o.verified} en fuente oficial</span>}
       <ConfidenceDot level={o.confidence} />

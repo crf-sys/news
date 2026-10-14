@@ -5,6 +5,7 @@ import { RegionTabs } from "./RegionTabs";
 import { SpectrumStrip } from "./Coverage";
 import { ObjectivityStrip, ConfidenceDot } from "./ObjectivityBadge";
 import { ClaimBadge } from "./ClaimBadge";
+import { SourceChips, Versions } from "./SourceChips";
 import type { Story } from "@/lib/types";
 
 const SECTION: Record<string, string> = {
@@ -118,13 +119,14 @@ function Informe({ stories, model }: { stories: Story[]; model: string }) {
   const totals = {
     hechos: all.filter((c) => c.status === "hecho").length,
     disputados: all.filter((c) => c.status === "disputado").length,
+    sinContrastar: all.filter((c) => c.status === "sin_contrastar").length,
     opiniones: all.filter((c) => c.status === "opinion").length,
     verificados: all.filter((c) => c.verification?.result === "confirmado").length,
   };
   return (
     <section className="mx-auto max-w-6xl px-4">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {[["Hechos", totals.hechos, "bg-fact"], ["En disputa", totals.disputados, "bg-disputed"], ["Opiniones", totals.opiniones, "border border-opinion"], ["Verificados en fuente oficial", totals.verificados, "bg-accent"]].map(([l, n, c]) => (
+        {[["Hechos", totals.hechos, "bg-fact"], ["En disputa", totals.disputados, "bg-disputed"], ["Sin contrastar", totals.sinContrastar, "border border-muted"], ["Verificados en fuente oficial", totals.verificados, "bg-accent"]].map(([l, n, c]) => (
           <div key={l as string} className="rounded-2xl border border-line bg-surface p-4">
             <div className="numeral text-5xl">{n}</div>
             <div className="label mt-2 flex items-center gap-2 text-[10px] text-muted"><i className={`h-2 w-2 rounded-full ${c}`} />{l}</div>
@@ -149,13 +151,17 @@ function Informe({ stories, model }: { stories: Story[]; model: string }) {
                 <div>
                   <p className="label mb-2 text-[10px] text-muted">Lo que se sabe</p>
                   <ul className="space-y-2">
-                    {facts.map((c) => <li key={c.text} className="border-l-2 border-fact pl-3 text-[15px] leading-snug">{c.text}</li>)}
+                    {facts.map((c) => <li key={c.text} className="border-l-2 border-fact pl-3 text-[15px] leading-snug">{c.text} <SourceChips sources={c.sources} /></li>)}
                   </ul>
                 </div>
                 <div>
                   <p className="label mb-2 text-[10px] text-muted">{disputed.length ? "Lo que está en disputa" : "Sin disputas relevantes"}</p>
                   <ul className="space-y-2">
-                    {disputed.map((c) => <li key={c.text} className="border-l-2 border-disputed pl-3 text-[15px] leading-snug">{c.text}</li>)}
+                    {disputed.map((c) => (
+                      <li key={c.text} className="text-[15px] leading-snug">
+                        {c.versions?.length ? <><b className="font-semibold">{c.text}</b><Versions claim={c} compact /></> : <span className="block border-l-2 border-disputed pl-3">{c.text} <SourceChips sources={c.sources} /></span>}
+                      </li>
+                    ))}
                   </ul>
                 </div>
               </div>

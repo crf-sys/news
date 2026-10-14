@@ -4,7 +4,7 @@ const STEPS = [
   ["Ordenamos por cobertura", "Manda cuántos medios distintos cuentan la noticia. A igualdad, cuántas piezas le dedican y su actualidad. La IA solo descarta lo que no es de interés público, como deportes, famosos o servicio."],
   ["Leemos a fondo y comparamos", "Un agente lee las piezas completas cuando el medio lo permite, compara cifras y versiones y detecta lenguaje cargado y omisiones."],
   ["Verificamos", "Ante cualquier duda acude a fuentes primarias (BOE, Congreso, INE, CIS, CGPJ, Banco de España, AIReF), a verificadores (Newtral, Maldita, EFE Verifica) y a nuestra hemeroteca. Si no puede comprobarlo, lo dice."],
-  ["Separamos", "Hecho: lo sostienen al menos 2 medios independientes sin contradicción, o lo confirma una fuente oficial. Disputado: hay versiones o cifras distintas. Opinión: valoraciones y predicciones."],
+  ["Separamos", "Hecho: lo sostienen al menos 2 medios independientes sin contradicción, o lo confirma una fuente oficial. En disputa: hay versiones o cifras distintas, y se muestra cada una con el enlace al medio que la sostiene. Sin contrastar: lo cuenta un solo medio y nadie lo contradice. Opinión: valoraciones y predicciones."],
   ["Citamos", "Cada afirmación enlaza a los medios y documentos de los que sale. Sin fuente, no se publica."],
   ["Medimos, no etiquetamos", "La posición de medios y voces se calcula a partir de lo que publican, con las pruebas y la confianza a la vista. Hasta tener datos suficientes, aparece como “en calibración”."],
 ];
