@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { ALL_OUTLETS } from "./sources";
 import type { Article, Outlet } from "./types";
 import { ingestRss, USER_AGENT } from "./pipeline/ingest";
+import { licensedOutletIds, loadLicenses } from "./licenses";
 
 export type RawItem = {
   outlet: string;
@@ -41,7 +42,7 @@ const MAX_ITEMS = 500;
 const MAX_POSITIONS = 200;
 
 function licensedIds() {
-  return new Set((process.env.LICENSED_OUTLETS ?? "").split(",").map((id) => id.trim()).filter(Boolean));
+  return licensedOutletIds();
 }
 
 function metadataOnlyIds() {
@@ -148,6 +149,7 @@ function batchId(capturedAt: string, index: number, items: RawItem[], snapshots:
 }
 
 export async function collectAll(capturedAt = new Date().toISOString()): Promise<{ batches: IngestBatch[]; coverage: CoverageEntry[] }> {
+  await loadLicenses();
   const enabled = collectibleOutlets();
   const enabledIds = new Set(enabled.map((outlet) => outlet.id));
   const { articles, report } = await ingestRss();

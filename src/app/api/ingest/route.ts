@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { sql, syncCatalog } from "@/lib/db";
 import { ALL_OUTLETS } from "@/lib/sources";
+import { loadLicenses } from "@/lib/licenses";
 
 export const maxDuration = 300;
 
@@ -10,7 +11,7 @@ export const maxDuration = 300;
 // - Se guarda copia bruta de cada lote (sin el texto completo) para no perder nada.
 // - Rechazos parciales: las piezas válidas se guardan aunque otras del lote fallen.
 // - Derechos: los asigna el proveedor. Para medios con reserva de minería, "licenciado" solo se acepta si
-//   ese medio está en LICENSED_OUTLETS (lista que Ágora mantiene tras revisar la licencia del proveedor);
+//   ese medio tiene una licencia registrada en /admin/licencias (o figura en LICENSED_OUTLETS);
 //   si no, la pieza se guarda como "sin_licencia" y queda fuera del análisis automático.
 
 const iso = z.string().datetime({ offset: true });
@@ -40,7 +41,6 @@ const Body = z.object({
 });
 
 const hostOf = (u: string) => new URL(u).hostname.replace(/^www\./, "");
-const licensed = () => new Set((process.env.LICENSED_OUTLETS ?? "").split(",").map((s) => s.trim()).filter(Boolean));
 
 function resolveOutlet(outlet: string, url?: string) {
   const byId = ALL_OUTLETS.find((o) => o.id === outlet);
@@ -66,7 +66,7 @@ export async function POST(req: Request) {
   if (done) return Response.json({ ...done.result, duplicate_batch: true });
 
   await syncCatalog();
-  const ok = licensed();
+  const ok = await loadLicenses();
   const rejected: { index: number; type: "item" | "snapshot"; url?: string; reason: string }[] = [];
   const warnings: { index: number; url: string; warning: string }[] = [];
   let saved = 0;

@@ -7,6 +7,7 @@ const TABS = [
   ["/admin/ingesta", "Ingesta"],
   ["/admin/propuestas", "Propuestas"],
   ["/admin/buzon", "Buzón"],
+  ["/admin/licencias", "Licencias"],
 ] as const;
 
 export function AdminNav({ active }: { active: string }) {

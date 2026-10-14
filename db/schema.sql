@@ -173,3 +173,17 @@ create table if not exists newsletter_sends (
   day date not null, region text not null, sent int not null, failed int not null,
   at timestamptz not null default now(), primary key (day, region)
 );
+
+-- Registro de licencias: activar un medio con reserva exige documentar la licencia o autorización.
+create table if not exists outlet_licenses (
+  id uuid primary key default gen_random_uuid(),
+  outlet_id text not null references outlets(id),
+  licensor text not null,          -- quién concede: el editor, CEDRO, un proveedor licenciado…
+  reference text not null,         -- nº de contrato, email de autorización, etc.
+  scope text not null check (scope in ('metadatos', 'texto_completo')),
+  valid_from date not null, valid_until date,
+  document_url text,
+  activated_by text not null, activated_at timestamptz not null default now(),
+  revoked_by text, revoked_at timestamptz
+);
+create index if not exists outlet_licenses_active_idx on outlet_licenses (outlet_id) where revoked_at is null;

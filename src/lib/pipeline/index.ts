@@ -1,6 +1,7 @@
 import { MODELS } from "../ai/models";
 import { sql } from "../db";
 import { readableOutlets } from "./ingest";
+import { loadLicenses } from "../licenses";
 import { clusterArticles, loadPool } from "./cluster";
 import { rankClusters } from "./rank";
 import { analyzeCluster } from "./analyze";
@@ -10,6 +11,7 @@ import type { Story } from "../types";
 // piezas de las últimas 36 h → temas → las 10 → informe verificado de cada una → publicación.
 export async function buildEdition(region: string) {
   const started = Date.now();
+  await loadLicenses();
   const model = region === "es" ? MODELS.analysisNational : MODELS.analysisRegional;
   const pool = await loadPool(region);
   const clusters = await clusterArticles(pool);

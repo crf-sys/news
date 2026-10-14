@@ -1,5 +1,6 @@
 import type { Article, Outlet } from "../types";
 import { ALL_OUTLETS } from "../sources";
+import { licensedOutletIds, loadLicenses } from "../licenses";
 
 // ETAPA 1 — Ingesta. Un único motor para todos los medios; lo que cambia por medio es su
 // configuración en sources.ts. Solo se leen automáticamente los medios con access "auto" o
@@ -13,7 +14,7 @@ export const USER_AGENT = "Mozilla/5.0 (compatible; AgoraBot/0.1; +https://agora
 const EXCERPT_MAX = 280;
 
 export const readableOutlets = () => {
-  const licensed = new Set((process.env.LICENSED_OUTLETS ?? "").split(",").map((id) => id.trim()).filter(Boolean));
+  const licensed = licensedOutletIds();
   const metadataOnly = new Set((process.env.METADATA_ONLY_OUTLETS ?? "").split(",").map((id) => id.trim()).filter(Boolean));
   return ALL_OUTLETS.filter((o) => o.access === "auto" || o.access === "licenciado" || licensed.has(o.id) || metadataOnly.has(o.id));
 };
@@ -27,6 +28,7 @@ export interface IngestReport {
 }
 
 export async function ingestRss(): Promise<{ articles: Article[]; report: IngestReport[] }> {
+  await loadLicenses();
   const jobs = readableOutlets().flatMap((o) => o.rss.map((feed) => ({ outlet: o, feed })));
   const results = await Promise.all(jobs.map(({ outlet, feed }) => readFeed(outlet, feed)));
 
