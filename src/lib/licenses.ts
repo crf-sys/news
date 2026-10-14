@@ -30,6 +30,7 @@ export function licensedOutletIds(): Set<string> {
 
 /** Alcance de la licencia de un medio con reserva, o null si no está activado. */
 export function licenseScope(outletId: string): LicenseScope | null {
-  if (envIds().includes(outletId)) return "texto_completo";
-  return active.get(outletId) ?? null;
+  const scope: LicenseScope | null = envIds().includes(outletId) ? "texto_completo" : (active.get(outletId) ?? null);
+  // HEADLINES_ONLY=1 limita cualquier licencia a "titulares" en esa ejecución (p. ej. vistas previas).
+  return scope && process.env.HEADLINES_ONLY === "1" ? "titulares" : scope;
 }

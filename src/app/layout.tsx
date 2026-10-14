@@ -12,6 +12,7 @@ const sans = Inter_Tight({ variable: "--font-inter", subsets: ["latin"] });
 const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://agora10.com"),
   title: "Ágora — Las 10 de hoy, sin ruido",
   description: "Las 10 noticias más importantes del día según los principales medios, separando hechos de opinión.",
 };

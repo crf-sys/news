@@ -70,3 +70,17 @@ export function dailyEmail(ed: Edition, unsubscribeToken: string) {
     headers: { "List-Unsubscribe": `<${unsub}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
   };
 }
+
+/** Aviso interno al confirmar un registro. Destino configurable con ADMIN_NOTIFY_EMAIL. */
+export async function notifyNewSubscriber(email: string, region: string, total: number) {
+  const to = process.env.ADMIN_NOTIFY_EMAIL ?? "crf@crf.me";
+  const r = regionOf(region);
+  return resend.emails.send({
+    from: FROM,
+    to,
+    subject: `Nuevo registro en Ágora · ${total} suscriptores`,
+    html: shell(`<h1 style="font-family:Georgia,serif;font-weight:normal;font-size:28px;margin:0 0 12px">Nuevo registro confirmado</h1>
+<p style="font-size:16px;line-height:1.6;margin:0"><b>${esc(email)}</b><br>Edición: ${esc(r?.name ?? region)}<br>Total de suscriptores confirmados: <b>${total}</b></p>`),
+    text: `Nuevo registro confirmado: ${email} · Edición: ${r?.name ?? region} · Total: ${total}`,
+  });
+}

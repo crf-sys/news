@@ -15,7 +15,7 @@ export async function subscribe(formData: FormData) {
   if (formData.get("consent") !== "on") redirect("/newsletter?error=consentimiento");
   const reg = ACTIVE_REGIONS.some((r) => r.id === region) ? region : "es";
 
-  const [row] = await sql`select confirmed_at, unsubscribed_at from subscribers where email = ${email}`;
+  const [row] = await sql`select confirmed_at, unsubscribed_at, consent_at from subscribers where email = ${email}`;
   if (row?.confirmed_at && !row.unsubscribed_at) {
     await sql`update subscribers set region = ${reg} where email = ${email}`;
     redirect("/newsletter?ok=ya");
@@ -28,5 +28,5 @@ export async function subscribe(formData: FormData) {
       confirm_token = excluded.confirm_token, unsubscribed_at = null, confirmed_at = null`;
   const { error } = await sendConfirmation(email, confirmToken);
   if (error) console.error("Error enviando confirmación", error.message);
-  redirect("/newsletter?ok=1");
+  redirect(row && !row.unsubscribed_at ? "/newsletter?ok=reenviado" : "/newsletter?ok=1");
 }

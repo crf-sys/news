@@ -7,6 +7,8 @@ import { outlet } from "@/lib/sources";
 import { OtherViews } from "@/components/OtherViews";
 import { ClaimBadge } from "@/components/ClaimBadge";
 import { SourceChips, Versions } from "@/components/SourceChips";
+import { BlindSpot } from "@/components/BlindSpot";
+import { ShareButtons } from "@/components/ShareButtons";
 import { SpectrumStrip } from "@/components/Coverage";
 import { ConfidenceDot, CoverageCount } from "@/components/ObjectivityBadge";
 import type { ClaimStatus, Story } from "@/lib/types";
@@ -20,6 +22,13 @@ const TABS = [
 ] as const;
 
 const name = (id: string) => outlet(id)?.name ?? id;
+
+export async function generateMetadata({ params }: PageProps<"/tema/[id]">) {
+  const { id } = await params;
+  const found = await findStory(id, ACTIVE_REGIONS.map((r) => r.id));
+  if (!found) return { title: "Ágora" };
+  return { title: `${found.story.headline} · Ágora`, description: found.story.dek };
+}
 
 export default function TemaPage({ params }: PageProps<"/tema/[id]">) {
   return (
@@ -48,8 +57,10 @@ async function Tema({ params }: { params: PageProps<"/tema/[id]">["params"] }) {
           <span className="numeral text-7xl text-accent sm:text-9xl">{s.rank}</span>
           <span className="label text-muted">Informe objetivo<br />{new Date(edition.date + "T12:00:00").toLocaleDateString("es-ES", { day: "numeric", month: "long" })}</span>
         </div>
-        <h1 className="display mt-6 text-5xl sm:text-7xl">{s.headline}</h1>
+        <div className="mt-6"><BlindSpot story={s} big /></div>
+        <h1 className="display mt-4 text-5xl sm:text-7xl">{s.headline}</h1>
         <p className="mt-6 text-xl text-muted">{s.dek}</p>
+        <div className="mt-6"><ShareButtons title={s.headline} path={`/tema/${s.id}`} /></div>
         {o && <div className="mt-6"><CoverageCount outlets={o.outlets} total={o.outletsTotal} big /></div>}
 
         <div className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">

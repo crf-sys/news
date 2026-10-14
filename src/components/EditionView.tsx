@@ -6,6 +6,8 @@ import { SpectrumStrip } from "./Coverage";
 import { ObjectivityStrip, ConfidenceDot } from "./ObjectivityBadge";
 import { ClaimBadge } from "./ClaimBadge";
 import { SourceChips, Versions } from "./SourceChips";
+import { DayMap } from "./DayMap";
+import { BlindSpot } from "./BlindSpot";
 import type { Story } from "@/lib/types";
 
 const SECTION: Record<string, string> = {
@@ -37,9 +39,14 @@ export async function EditionView({ region, mode }: { region: string; mode: "por
         <p className="mt-4 max-w-xl text-lg text-muted sm:text-xl">
           Las <span className="text-fg">10 noticias</span> que más pesan hoy{region === "es" ? "" : ` en ${r.name}`}. Hechos separados de opinión, verificados en la fuente cuando hay dudas.
         </p>
-        <div className="mt-6 inline-flex rounded-full border border-line p-1">
-          <Link href={base(region) || "/"} className={`label rounded-full px-4 py-2 ${mode === "portada" ? "bg-fg text-bg" : "text-muted"}`}>Portada</Link>
-          <Link href={`${base(region)}/informe`} className={`label rounded-full px-4 py-2 ${mode === "informe" ? "bg-fg text-bg" : "text-muted"}`}>Informe del día</Link>
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <div className="inline-flex rounded-full border border-line p-1">
+            <Link href={base(region) || "/"} className={`label rounded-full px-4 py-2 ${mode === "portada" ? "bg-fg text-bg" : "text-muted"}`}>Portada</Link>
+            <Link href={`${base(region)}/informe`} className={`label rounded-full px-4 py-2 ${mode === "informe" ? "bg-fg text-bg" : "text-muted"}`}>Informe del día</Link>
+          </div>
+          <Link href={`${base(region)}/desliza`} className="label inline-flex items-center gap-2 rounded-full bg-accent px-4 py-3 font-semibold text-bg">
+            Las 10 en 3 minutos <span aria-hidden>↑</span>
+          </Link>
         </div>
       </section>
 
@@ -51,7 +58,11 @@ export async function EditionView({ region, mode }: { region: string; mode: "por
           </div>
         </section>
       ) : mode === "portada" ? (
-        <Portada stories={ed.stories} />
+        <>
+          <DayMap stories={ed.stories} />
+          <div className="h-4" />
+          <Portada stories={ed.stories} />
+        </>
       ) : (
         <Informe stories={ed.stories} model={ed.model} />
       )}
@@ -78,6 +89,7 @@ function Portada({ stories }: { stories: Story[] }) {
             <div className="flex items-center gap-3">
               <span className="label rounded-full bg-accent px-3 py-1 font-semibold text-bg">Apertura</span>
               <span className="label text-muted">{SECTION[lead.section]}</span>
+              <BlindSpot story={lead} />
             </div>
             <h2 className="display mt-6 max-w-4xl text-5xl transition-colors group-hover:text-accent sm:text-7xl">{lead.headline}</h2>
             <p className="mt-5 max-w-2xl text-lg text-muted">{lead.dek}</p>
@@ -92,11 +104,11 @@ function Portada({ stories }: { stories: Story[] }) {
       <section className="mx-auto mt-4 max-w-6xl px-4">
         <ol className="divide-y divide-line">
           {rest.map((s) => (
-            <li key={s.id}>
+            <li key={s.id} className="reveal">
               <Link href={`/tema/${s.id}`} className="group grid grid-cols-[3.5rem_1fr] gap-4 py-7 sm:grid-cols-[7rem_1fr_auto] sm:gap-8">
                 <span className="numeral text-6xl text-muted transition-colors group-hover:text-accent sm:text-8xl">{s.rank}</span>
                 <div>
-                  <span className="label text-muted">{SECTION[s.section]}</span>
+                  <span className="label text-muted">{SECTION[s.section]}</span> <BlindSpot story={s} />
                   <h3 className="display mt-2 text-3xl sm:text-4xl">{s.headline}</h3>
                   <p className="mt-2 text-muted">{s.dek}</p>
                   <div className="mt-4"><ObjectivityStrip story={s} /></div>
@@ -143,7 +155,7 @@ function Informe({ stories, model }: { stories: Story[]; model: string }) {
               <div className="flex items-start gap-4">
                 <span className="numeral text-5xl text-accent sm:text-6xl">{s.rank}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="label text-[10px] text-muted">{SECTION[s.section]}</p>
+                  <p className="label text-[10px] text-muted">{SECTION[s.section]} <BlindSpot story={s} /></p>
                   <h2 className="display mt-1 text-3xl sm:text-4xl">{s.headline}</h2>
                 </div>
               </div>

@@ -18,7 +18,7 @@ export function RegisterBar() {
       setShow(true);
     }
   }, []);
-  if (!show || path.startsWith("/newsletter") || path.startsWith("/admin") || path.startsWith("/sign-in")) return null;
+  if (!show || path.includes("/desliza") || path.startsWith("/newsletter") || path.startsWith("/admin") || path.startsWith("/sign-in")) return null;
   return (
     <div className="fixed inset-x-3 bottom-3 z-40 mx-auto flex max-w-xl items-center gap-3 rounded-full border border-accent/40 bg-bg/90 p-2 pl-5 shadow-2xl backdrop-blur-xl sm:bottom-6">
       <p className="flex-1 text-sm leading-tight"><b>Las 10 de hoy</b> <span className="text-muted">en tu correo a las 07:00</span></p>

@@ -29,7 +29,8 @@ export default function Newsletter({ searchParams }: PageProps<"/newsletter">) {
 }
 
 const MESSAGES: Record<string, [string, "ok" | "error"]> = {
-  "ok:1": ["¡Casi listo! Te hemos enviado un email: pulsa el botón para confirmar.", "ok"],
+  "ok:1": ["¡Casi listo! Te hemos enviado un email para confirmar tu registro. Si no lo ves en un par de minutos, mira en spam o promociones.", "ok"],
+  "ok:reenviado": ["Ya estabas apuntado, pero falta confirmar: te hemos reenviado el email. Mira también en spam o promociones.", "ok"],
   "ok:ya": ["Ya estabas registrado. Seguirás recibiendo Las 10 de hoy cada mañana.", "ok"],
   "confirmado:1": ["¡Confirmado! Mañana a las 07:00 recibirás tu primer email.", "ok"],
   "baja:1": ["Te hemos dado de baja. No recibirás más emails. Puedes volver cuando quieras.", "ok"],
